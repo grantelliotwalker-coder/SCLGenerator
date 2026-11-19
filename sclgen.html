@@ -35,19 +35,19 @@ header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var
 .pill.ok{color:var(--ok);background:var(--ok-bg)}
 .pill.err{color:var(--err);background:var(--err-bg)}
 .pill.warn{color:var(--warn);background:var(--warn-bg)}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--soft)}
-.toolbar .grow{flex:1}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer;white-space:nowrap}
 .btn:hover{border-color:var(--muted)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 select.btn{padding-right:8px}
-main{height:max(460px,70vh);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 16px;min-height:0}
+.results{padding:12px 16px}
+.results .pane{height:max(520px,78vh)}
+.grow{flex:1}
 .pane{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:8px;min-height:0;overflow:hidden}
-.pane-head{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);min-height:38px}
+.pane-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);min-height:38px}
 .pane-head strong{color:var(--ink);font-weight:600}
 .fname{font-family:var(--mono);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-textarea#spec{flex:1;width:100%;border:0;resize:none;padding:10px 12px;background:var(--panel);color:var(--ink);font:13px/1.5 var(--mono);tab-size:2;outline:none;min-height:0}
+textarea#spec{flex:1;display:block;width:100%;border:0;resize:none;padding:10px 12px;background:var(--panel);color:var(--ink);font:13px/1.5 var(--mono);tab-size:2;outline:none;min-height:0}
 textarea#spec::selection{background:var(--sel)}
 .tabs{display:flex;gap:2px}
 .tab{border:0;background:none;padding:6px 10px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:600}
@@ -105,13 +105,54 @@ details.tips b{color:var(--ink);font-weight:600}
 #result strong{font-size:14px}
 #result ul{margin:0;padding-left:18px;color:var(--ink);max-height:120px;overflow:auto}
 #result .row{display:flex;gap:8px;flex-wrap:wrap}
-.section-label{padding:14px 16px 0;color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.tab.subtle{font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.chips span{margin-right:2px}
+.chip{border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.spec-view:not([hidden]){display:flex;flex-direction:column}
+.spec-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--soft);font-size:13px;color:var(--muted)}
+pre.code{margin:0;padding:14px 18px;font:13px/1.55 var(--mono);white-space:pre-wrap}
+.note{margin:14px 18px;padding:10px 12px;border-radius:6px;background:var(--warn-bg);color:var(--warn);font-size:13px}
+/* FDS document */
+.doc{max-width:900px;padding:22px 28px 40px;font-size:14px;line-height:1.55}
+.doc h1{font-size:22px;margin:0 0 4px}
+.doc .sub{color:var(--muted);margin:0 0 14px}
+.doc h2{font-size:17px;margin:26px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.doc h3{font-size:15px;margin:18px 0 6px}
+.doc h4{font-size:14px;margin:14px 0 4px}
+.doc p{margin:6px 0}
+.doc ul,.doc ol{margin:6px 0;padding-left:22px}
+.doc li{margin:2px 0}
+.doc ul.rules{list-style:none;padding-left:0}
+.doc ul.rules li{padding-left:2.6em;text-indent:-2.6em}
+.doc table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+.doc th,.doc td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+.doc th{background:var(--soft);font-weight:600}
+.doc code{font-family:var(--mono);font-size:12px;background:var(--soft);padding:1px 4px;border-radius:3px}
+.doc pre{font:12px/1.45 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:10px 12px;white-space:pre-wrap;margin:8px 0}
+.doc table.meta{width:auto;min-width:50%}
+.doc table.meta th{width:9em}
+.doc .appendix{break-before:page}
+.doc .muted{color:var(--muted)}
+#print{display:none}
+@media print{
+  :root{--ink:#000;--line:#999;--soft:#f0f0f0;--muted:#444}
+  body{background:#fff;display:block;min-height:0}
+  body > *:not(#print){display:none !important}
+  #print{display:block}
+  #print .doc{max-width:none;padding:0;font-size:10.5pt}
+  #print .doc pre{font-size:8.5pt}
+  #print .doc table{font-size:9.5pt}
+  #print h2,#print h3{break-after:avoid}
+  #print tr,#print pre{break-inside:avoid}
+  @page{margin:16mm 15mm}
+}
 @media (max-width:1000px){.steps{grid-template-columns:1fr}}
 @media (max-width:820px){
-  main{height:auto;grid-template-columns:1fr}
-  .pane{height:62vh}
+  .results .pane{height:80vh}
   .brand span{display:none}
-  .toolbar .grow{display:none}
+  .doc{padding:16px}
 }
 </style>
 </head>
@@ -123,11 +164,10 @@ details.tips b{color:var(--ink);font-weight:600}
     <summary>How it works</summary>
     <div class="help-body">
       <ol>
-        <li><b>Describe your block</b> in plain words, and paste in any manufacturer's info you have.</li>
-        <li><b>Copy prompt</b> and paste it into any AI chat, online or local. The AI writes only a JSON <b>spec</b>; this page writes the SCL from it, using fixed template rules.</li>
-        <li>Copy the AI's whole reply and click <b>Paste &amp; go</b>. If the spec has problems, <b>Copy fix request</b>, paste it back into the same chat, and paste the new reply.</li>
-        <li>Review the SCL below and download it. The file uses CRLF line endings for SIMATIC Manager or TIA import. You can also edit the spec by hand, or open or drop a <code>.json</code> file.</li>
-        <li>Compile the block in STEP 7, PCS 7 or TIA and test it. This page does not compile SCL.</li>
+        <li><b>Describe your idea</b> in plain words, or click an example idea. Add any manufacturer's info you have.</li>
+        <li><b>Copy prompt</b> and paste it into any AI chat. The AI is the middle man: it writes the FDS, pseudo code and block design and returns them as JSON in the exact format this page reads. It does not write the SCL.</li>
+        <li>Copy the AI's reply and click <b>Paste &amp; go</b>. The page builds the SCL block from the template rules and shows the FDS. If anything is wrong, <b>Copy fix request</b>, paste it into the same chat, and paste the new reply.</li>
+        <li><b>Download</b> the .scl (CRLF line endings for SIMATIC Manager or TIA) and <b>Save FDS as PDF</b>.</li>
       </ol>
       <p style="margin:6px 0 0;color:var(--muted)">Everything runs in this page. Nothing is uploaded and it works with no internet connection. Your last spec is kept in this browser.</p>
     </div>
@@ -135,8 +175,14 @@ details.tips b{color:var(--ink);font-weight:600}
 </header>
 <section class="steps" aria-label="Make a block in three steps">
   <div class="step">
-    <h2><span class="num">1</span>Describe your block</h2>
-    <textarea id="desc" spellcheck="true" aria-label="Describe your block" placeholder="e.g. Two pump duty/standby controller on wet well level (0-100 %). Start the duty pump at 60 %, stop at 20 %, bring in the second pump at 80 %. Alternate duty each cycle. If the duty pump is not available, run the other one. Show the state on the HMI."></textarea>
+    <h2><span class="num">1</span>Describe your idea</h2>
+    <textarea id="desc" spellcheck="true" aria-label="Describe your idea" placeholder="e.g. Two pump duty/standby controller on wet well level (0-100 %). Start the duty pump at 60 %, stop at 20 %, bring in the second pump at 80 %. Alternate duty each cycle. If the duty pump is not available, run the other one. Show the state on the HMI."></textarea>
+    <div class="chips" aria-label="Example ideas"><span>Try an idea:</span>
+      <button class="chip" type="button" data-idea="duty">Two pump duty/standby</button>
+      <button class="chip" type="button" data-idea="valve">Motorised valve</button>
+      <button class="chip" type="button" data-idea="alarm">Analog alarms</button>
+      <button class="chip" type="button" data-idea="runhours">Run hours and starts</button>
+    </div>
     <details class="tips">
       <summary>What to include</summary>
       <ul>
@@ -148,74 +194,123 @@ details.tips b{color:var(--ink);font-weight:600}
         <li><b>Faults:</b> what counts as a fault, whether it latches, how it is reset.</li>
         <li><b>Operator view:</b> the states and messages the HMI should show.</li>
         <li><b>Header:</b> author and family names for the block, if you use them.</li>
+        <li><b>Datasheet:</b> paste any manufacturer's info straight in here too.</li>
       </ul>
       <p style="margin:6px 0 0">Anything you leave out, the AI fills with a sensible default and lists as an <b>ASSUMPTION</b> in the block header.</p>
     </details>
   </div>
   <div class="step">
     <h2><span class="num">2</span>Copy the prompt</h2>
-    <p>Then paste it into any AI chat: ChatGPT, Claude, Copilot, Gemini, or a model on your own PC.</p>
+    <p>Paste it into any AI chat: ChatGPT, Claude, Copilot, Gemini, or a model on your own PC.</p>
     <button class="btn primary big" id="promptBtn" type="button">Copy prompt</button>
-    <p>The prompt contains your description, the rules, the spec format and an example. It tells the AI to reply with the JSON only.</p>
+    <p>The AI is the middle man: it writes the FDS, the pseudo code and the block design, and hands them back as one block of JSON in the exact format this page reads.</p>
   </div>
   <div class="step">
     <h2><span class="num">3</span>Paste the AI's reply</h2>
-    <p>Copy the AI's whole answer. Extra text around the JSON is fine.</p>
+    <p>Use the copy button on the AI's code block (or copy its whole answer), then:</p>
     <button class="btn primary big" id="pasteBtn" type="button">Paste &amp; go</button>
     <textarea id="pasteBox" spellcheck="false" aria-label="Paste the AI reply here" placeholder="…or paste it here with Ctrl+V"></textarea>
+    <div class="chips" aria-label="Sample AI replies"><span>No AI handy? Test with a sample reply:</span>
+      <button class="chip" type="button" data-sample="duty_pump_2">Two pump duty</button>
+      <button class="chip" type="button" data-sample="pump_run_monitor">Pump run monitor</button>
+    </div>
     <div id="result" role="status" aria-live="polite"></div>
   </div>
 </section>
-<div class="section-label">Spec and generated SCL</div>
-<div class="toolbar">
-  <button class="btn" id="openBtn" type="button">Open spec…</button>
-  <input type="file" id="fileInput" accept=".json,application/json" hidden>
-  <select class="btn" id="exampleSel" aria-label="Load an example">
-    <option value="">Load example…</option>
-    <option value="pump_run_monitor">Pump run feedback monitor</option>
-    <option value="template_threshold">Template (threshold)</option>
-  </select>
-  <button class="btn" id="saveBtn" type="button">Save spec</button>
-  <button class="btn" id="aiBtn" type="button">Copy instructions only</button>
-  <span class="grow"></span>
-  <button class="btn" id="copyBtn" type="button">Copy SCL</button>
-  <button class="btn primary" id="dlBtn" type="button">Download .scl</button>
-</div>
-<main>
-  <section class="pane">
-    <div class="pane-head"><strong>Spec</strong><span class="fname" id="fname">untitled.json</span></div>
-    <textarea id="spec" spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off" aria-label="JSON block spec"></textarea>
-  </section>
-  <section class="pane">
+<section class="results" aria-label="Results">
+  <div class="pane">
     <div class="pane-head">
       <div class="tabs" role="tablist">
-        <button class="tab" role="tab" id="tabProblems" aria-selected="false" type="button">Problems<span class="count" id="probCount">0</span></button>
-        <button class="tab" role="tab" id="tabScl" aria-selected="true" type="button">SCL</button>
+        <button class="tab" role="tab" id="tab-fds" type="button">FDS</button>
+        <button class="tab" role="tab" id="tab-pseudo" type="button">Pseudo code</button>
+        <button class="tab" role="tab" id="tab-scl" type="button">SCL block</button>
+        <button class="tab" role="tab" id="tab-problems" type="button">Problems<span class="count" id="probCount">0</span></button>
+        <button class="tab subtle" role="tab" id="tab-spec" type="button">Advanced: JSON</button>
       </div>
+      <span class="grow"></span>
+      <button class="btn" id="pdfBtn" type="button">Save FDS as PDF</button>
+      <button class="btn" id="copyBtn" type="button">Copy SCL</button>
+      <button class="btn primary" id="dlBtn" type="button">Download .scl</button>
     </div>
-    <div class="view" id="viewProblems" hidden><ul id="problems"></ul></div>
-    <div class="view" id="viewScl"><pre id="scl"></pre></div>
-  </section>
-</main>
-<footer>Runs entirely in this page. It does not compile SCL: always compile the output in STEP 7, PCS 7 or TIA and test it.</footer>
-<div id="drop">Drop a .json spec to open it</div>
+    <div class="view" id="view-fds"><article class="doc" id="fds"></article></div>
+    <div class="view" id="view-pseudo" hidden><pre class="code" id="pseudo"></pre></div>
+    <div class="view" id="view-scl" hidden><pre id="scl"></pre></div>
+    <div class="view" id="view-problems" hidden><ul id="problems"></ul></div>
+    <div class="view spec-view" id="view-spec" hidden>
+      <div class="spec-tools">
+        <span>The JSON the AI wrote. You only need this to hand-edit or reuse a spec.</span>
+        <span class="grow"></span>
+        <span class="fname" id="fname">untitled.json</span>
+        <button class="btn" id="openBtn" type="button">Open…</button>
+        <input type="file" id="fileInput" accept=".json,application/json" hidden>
+        <select class="btn" id="exampleSel" aria-label="Load an example">
+          <option value="">Load example…</option>
+          <option value="pump_run_monitor">Pump run feedback monitor</option>
+          <option value="duty_pump_2">Two pump duty/standby</option>
+          <option value="template_threshold">Template (threshold)</option>
+        </select>
+        <button class="btn" id="saveBtn" type="button">Save JSON</button>
+        <button class="btn" id="aiBtn" type="button">Copy instructions only</button>
+      </div>
+      <textarea id="spec" spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off" aria-label="JSON block spec"></textarea>
+    </div>
+  </div>
+</section>
+<footer>Runs entirely in this page; nothing is uploaded. It does not compile SCL: always compile the block in STEP 7, PCS 7 or TIA and test it.</footer>
+<div id="print" aria-hidden="true"></div>
+<div id="drop">Drop a .json file to open it</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <!-- Embedded copies of repo files. Keep in sync with: node tests/test.js --fix -->
 <script type="text/plain" id="embed-AI_INSTRUCTIONS.md">
-# Instructions for the AI session
+# Instructions for the AI
 
-You are converting a description of a control function (manufacturer datasheet, I/O list,
-functional description or plain-English request) into a **JSON block spec** for our offline
-SCL generator. You do NOT write the finished SCL block. The generator builds the header,
-declarations, enable/reset section, timer presets, state/status section and timer engine.
-You supply only the spec.
+You turn a short idea for a PLC function into one JSON object that holds three things:
 
-## Output rules
-1. Output **one JSON object only**, in a single ```json code block, with no other text.
-   It must validate against `block_spec.schema.json` (attached or below).
+1. **`fds`**: a Functional Design Specification an engineer can review and sign off.
+2. **`pseudo_code`**: the control logic in plain structured steps.
+3. **The block spec** (all the other fields). An offline generator turns it into the finished
+   Siemens SCL `FUNCTION_BLOCK` using fixed template rules. You do NOT write the SCL itself. The
+   generator writes the header, declarations, enable/reset section, timer presets, state/status
+   section and timer engine; you supply the spec.
+
+The user pastes your JSON into the generator page, which shows the FDS (and saves it as a PDF) and
+builds the SCL block.
+
+All three must describe exactly the same behaviour. Every rule in FDS section 3 must be implemented
+in the spec's logic, and the pseudo code must follow the spec's logic sections in the same order.
+
+## Reply format
+Reply with the JSON object only, in **one** ```json code block, with no text before or after it.
+Write `fds` first, then `pseudo_code`, then the spec fields. `fds` and `pseudo_code` are **arrays
+of strings, one string per line** (use `""` for a blank line), so no long escaped strings are needed.
+
+## FDS (`fds`)
+One line per array item, written in Markdown: `#` headings, paragraphs, `-` or `1.` lists, `|` tables, `**bold**`. Plain engineering
+English. Use signal names exactly as they appear in the spec. Use these sections:
+
+1. `# 1 Purpose and scope`: what the block does and what it does not do.
+2. `# 2 Description of operation`: how it behaves in normal operation, as a short narrative.
+3. `# 3 Control logic`: numbered rules, each one testable (e.g. "3.4 When Level ≥ StartLevel for
+   StartDelay s, the duty pump starts.").
+4. `# 4 Alarms and faults`: what raises each alarm or fault, whether it latches, how it resets.
+5. `# 5 Operator interface`: what the operator can adjust and what they see.
+6. `# 6 Assumptions and open points`: every default you chose because the request did not say.
+7. `# 7 Test plan`: a table `| No. | Action | Expected result |` covering normal operation, limits,
+   every fault, and disable/enable.
+
+Do not write tables of inputs, outputs, states or timers: the page builds those from the spec and
+adds them to the FDS as appendices, so they always match the block.
+
+## Pseudo code (`pseudo_code`)
+One line per array item. Plain structured pseudo code (IF / ELSE / END IF, assignments with `=`), one part per logic
+section, in scan order, using spec names. It is for review, so keep it short and readable. It is
+not SCL.
+
+## Spec rules
+1. The whole reply is one JSON object that validates against `block_spec.schema.json` (below).
 2. `spec_version` is `"1.0"`. Use the `block.author` and `block.family` the user gives you. If none are given, use `"AUTHOR"` and
-   `"FAMILY"` as placeholders and say so in `block.how_it_works` (see "If information is missing").
+   `"FAMILY"` as placeholders and say so in FDS section 6.
    `short_name`, `author`, `family` max 8 characters. `version` like `"1.0"`.
 3. Names: letters, digits, underscore, max 24 characters, meaningful (e.g. `RunFbk`, not `BoolInput3`).
    No SCL reserved words. Names are not case-sensitive, so no two names may differ only by case.
@@ -225,8 +320,10 @@ You supply only the spec.
    adjustable parameters, `"sampletime"` only for the SampleTime input, `"none"` otherwise.
 7. Must include a BOOL input named in `enable_input`.
 8. If there are any timers, include a REAL input `SampleTime` with `attr_preset: "sampletime"`.
+9. `block.how_it_works` is a few short lines for the block header; list the main assumptions there
+   too, each starting with `ASSUMPTION:`.
 
-## Timers
+### Timers
 - Declare each timer in `timers` with an `id` and a preset: `{"seconds": 5.0}` for a fixed time, or
   `{"from": "SomeInput"}` to take it from a REAL input (preferred: lets the operator tune it).
 - In logic, refer to a timer as `{timer:<id>}`, e.g. `{timer:on_delay}.IN := TRUE;`.
@@ -234,7 +331,7 @@ You supply only the spec.
 - **Never** set `.PT` in logic. Presets come only from the `timers` list.
 - `.Q` is updated at the end of each scan, so logic sees last scan's value. That is intended.
 
-## Logic sections
+### Logic sections
 - `logic_sections` is an ordered list of `{title, description[], scl}`. Keep each section to one job
   (input conditioning, interlocks, fault detection, output logic...).
 - `scl` contains plain SCL statements only: `:=` for assignment, `=` for comparison, every statement
@@ -243,26 +340,26 @@ You supply only the spec.
 - Do not write the enable/disable reset, the state CASE, or the timer FOR loop. The generator does that.
 - Use only variables you declared. Comment non-obvious lines with `// ...`.
 
-## State machine
+### State machine
 - `state_output` is an INT output, `status_output` a STRING output.
 - `states` are tested **in list order**, first match wins; put the highest priority (faults) first.
 - The last state may use `"condition": "ELSE"` as the default (usually idle/stopped).
 - `status` text must fit the STRING length. `safe_value` must be one of the state values.
 
 ## If information is missing
-Do not invent setpoints, addresses or timings silently. Use a sensible default and add the
-assumption to `block.how_it_works` starting with `ASSUMPTION:` so the engineer sees it in the
-block header.
+Do not ask questions. Choose a sensible, safe default, use it consistently in all three parts, and
+list it in FDS section 6.
 
 ## Example
-See the example spec (`examples/pump_run_monitor.json`) for a complete correct spec.
+The example below (`examples/pump_run_monitor.json`) is complete and correct, and the SCL after it
+is what the generator builds from it. Use them to see the format; do not copy their logic.
 </script>
 <script type="application/json" id="embed-schema/block_spec.schema.json">
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "scl-block-spec-1.0",
   "title": "SCL function block spec v1.0",
-  "description": "Input format for sclgen.html. One spec = one FUNCTION_BLOCK.",
+  "description": "Input format for sclgen. One spec = one FUNCTION_BLOCK, plus its FDS and pseudo code.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -275,6 +372,34 @@ See the example spec (`examples/pump_run_monitor.json`) for a complete correct s
     "state_machine"
   ],
   "properties": {
+    "fds": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Functional Design Specification in Markdown, one array item per line"
+    },
+    "pseudo_code": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Pseudo code of the logic sections, one array item per line"
+    },
     "spec_version": {
       "const": "1.0"
     },
@@ -725,9 +850,64 @@ See the example spec (`examples/pump_run_monitor.json`) for a complete correct s
       }
     }
   }
-}</script>
+}
+</script>
 <script type="application/json" id="embed-examples/pump_run_monitor.json">
 {
+  "fds": [
+    "# 1 Purpose and scope",
+    "Monitors one pump's run feedback against its run command and raises latched faults when they disagree for too long. It does not start or stop the pump; the run command comes from elsewhere.",
+    "",
+    "# 2 Description of operation",
+    "When the pump is commanded to run, the run feedback is expected within StartCheckTime seconds. When the command is removed, the feedback is expected to drop within StopCheckTime seconds. If either does not happen, the matching fault latches and stays on until the operator resets it.",
+    "",
+    "# 3 Control logic",
+    "3.1 While Enable is FALSE the block is idle: faults are cleared, timers are stopped and StatusString shows \"Disabled\".",
+    "3.2 The start check timer runs while RunCmd is TRUE, RunFbk is FALSE and FailToStart is not already latched.",
+    "3.3 When the start check timer reaches StartCheckTime, FailToStart latches TRUE.",
+    "3.4 The stop check timer runs while RunCmd is FALSE, RunFbk is TRUE and FailToStop is not already latched.",
+    "3.5 When the stop check timer reaches StopCheckTime, FailToStop latches TRUE.",
+    "3.6 A rising edge on FaultReset clears FailToStart and FailToStop and restarts both checks.",
+    "3.7 Fault is TRUE whenever FailToStart or FailToStop is TRUE.",
+    "",
+    "# 4 Alarms and faults",
+    "| Fault | Raised when | Latches | Reset |",
+    "|---|---|---|---|",
+    "| FailToStart | Run commanded, no feedback for StartCheckTime s | Yes | Rising edge on FaultReset |",
+    "| FailToStop | Command removed, feedback still on after StopCheckTime s | Yes | Rising edge on FaultReset |",
+    "",
+    "# 5 Operator interface",
+    "The operator can adjust StartCheckTime and StopCheckTime. The HMI shows FailToStart, FailToStop, Fault, State and StatusString.",
+    "",
+    "# 6 Assumptions and open points",
+    "- ASSUMPTION: 10 s is long enough for the starter to pull in and drop out.",
+    "- A fault does not stop the pump itself; the calling logic must use Fault to interlock the run command if required.",
+    "",
+    "# 7 Test plan",
+    "| No. | Action | Expected result |",
+    "|---|---|---|",
+    "| 1 | Set RunCmd TRUE, give RunFbk within 10 s | No fault, State 2, \"Running\" |",
+    "| 2 | Set RunCmd TRUE, hold RunFbk FALSE for 10 s | FailToStart and Fault TRUE, State 9 |",
+    "| 3 | Remove RunCmd, hold RunFbk TRUE for 10 s | FailToStop and Fault TRUE, State 9 |",
+    "| 4 | Pulse FaultReset with feedback correct | Faults clear, State follows the pump |",
+    "| 5 | Hold FaultReset TRUE while the fault returns | Fault latches again; reset needs a new rising edge |",
+    "| 6 | Set Enable FALSE, then TRUE | \"Disabled\" shown, then block restarts with no faults |"
+  ],
+  "pseudo_code": [
+    "// Fault detection",
+    "start_check.IN = RunCmd AND NOT RunFbk AND NOT FailToStart",
+    "stop_check.IN = NOT RunCmd AND RunFbk AND NOT FailToStop",
+    "IF start_check done THEN FailToStart = TRUE",
+    "IF stop_check done THEN FailToStop = TRUE",
+    "",
+    "// Fault reset",
+    "IF FaultReset rising edge THEN",
+    "    FailToStart = FALSE",
+    "    FailToStop = FALSE",
+    "    reset start_check and stop_check",
+    "END IF",
+    "Fault = FailToStart OR FailToStop"
+  ],
   "spec_version": "1.0",
   "block": {
     "name": "PumpRunMon",
@@ -737,7 +917,10 @@ See the example spec (`examples/pump_run_monitor.json`) for a complete correct s
     "short_name": "PMPRUN",
     "version": "1.0",
     "know_how_protect": true,
-    "attributes": { "S7_m_c": "true", "S7_tasklist": "OB100" },
+    "attributes": {
+      "S7_m_c": "true",
+      "S7_tasklist": "OB100"
+    },
     "purpose": "Checks a pump's run feedback against its run command and latches fail to start / fail to stop faults.",
     "how_it_works": [
       "Fail to start: RunCmd is TRUE but RunFbk is not seen within StartCheckTime seconds.",
@@ -748,40 +931,114 @@ See the example spec (`examples/pump_run_monitor.json`) for a complete correct s
   "enable_input": "Enable",
   "sample_time_input": "SampleTime",
   "inputs": [
-    { "name": "Enable", "type": "BOOL", "initial": true, "attr_preset": "hmi",
-      "comment": "Block enable, must be TRUE for any monitoring to run" },
-    { "name": "RunCmd", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Run command sent to the pump starter" },
-    { "name": "RunFbk", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Run feedback from the starter auxiliary contact" },
-    { "name": "FaultReset", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Fault reset, rising edge clears latched faults" },
-    { "name": "StartCheckTime", "type": "REAL", "initial": 10.0, "attr_preset": "param",
-      "comment": "Seconds allowed for run feedback after the run command" },
-    { "name": "StopCheckTime", "type": "REAL", "initial": 10.0, "attr_preset": "param",
-      "comment": "Seconds allowed for run feedback to drop after the command is removed" },
-    { "name": "SampleTime", "type": "REAL", "attr_preset": "sampletime",
-      "comment": "Cycle time of the PLC in seconds, used for timer logic" }
+    {
+      "name": "Enable",
+      "type": "BOOL",
+      "initial": true,
+      "attr_preset": "hmi",
+      "comment": "Block enable, must be TRUE for any monitoring to run"
+    },
+    {
+      "name": "RunCmd",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Run command sent to the pump starter"
+    },
+    {
+      "name": "RunFbk",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Run feedback from the starter auxiliary contact"
+    },
+    {
+      "name": "FaultReset",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Fault reset, rising edge clears latched faults"
+    },
+    {
+      "name": "StartCheckTime",
+      "type": "REAL",
+      "initial": 10.0,
+      "attr_preset": "param",
+      "comment": "Seconds allowed for run feedback after the run command"
+    },
+    {
+      "name": "StopCheckTime",
+      "type": "REAL",
+      "initial": 10.0,
+      "attr_preset": "param",
+      "comment": "Seconds allowed for run feedback to drop after the command is removed"
+    },
+    {
+      "name": "SampleTime",
+      "type": "REAL",
+      "attr_preset": "sampletime",
+      "comment": "Cycle time of the PLC in seconds, used for timer logic"
+    }
   ],
   "outputs": [
-    { "name": "FailToStart", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Latched fault, no run feedback within StartCheckTime" },
-    { "name": "FailToStop", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Latched fault, run feedback still present after StopCheckTime" },
-    { "name": "Fault", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Common fault, TRUE if either fault is latched" },
-    { "name": "State", "type": "INT", "initial": 0, "attr_preset": "hmi",
-      "comment": "State, 0 = stopped, 1 = starting, 2 = running, 3 = stopping, 9 = fault" },
-    { "name": "StatusString", "type": "STRING[50]", "attr_preset": "hmi",
-      "comment": "Diagnostic status string for the operator screen" }
+    {
+      "name": "FailToStart",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Latched fault, no run feedback within StartCheckTime"
+    },
+    {
+      "name": "FailToStop",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Latched fault, run feedback still present after StopCheckTime"
+    },
+    {
+      "name": "Fault",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Common fault, TRUE if either fault is latched"
+    },
+    {
+      "name": "State",
+      "type": "INT",
+      "initial": 0,
+      "attr_preset": "hmi",
+      "comment": "State, 0 = stopped, 1 = starting, 2 = running, 3 = stopping, 9 = fault"
+    },
+    {
+      "name": "StatusString",
+      "type": "STRING[50]",
+      "attr_preset": "hmi",
+      "comment": "Diagnostic status string for the operator screen"
+    }
   ],
   "statics": [
-    { "name": "FaultResetPrev", "type": "BOOL", "initial": false,
-      "comment": "FaultReset value from the previous scan for rising edge detection" }
+    {
+      "name": "FaultResetPrev",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "FaultReset value from the previous scan for rising edge detection"
+    }
   ],
   "timers": [
-    { "id": "start_check", "preset": { "from": "StartCheckTime" }, "comment": "Fail to start check" },
-    { "id": "stop_check",  "preset": { "from": "StopCheckTime" },  "comment": "Fail to stop check" }
+    {
+      "id": "start_check",
+      "preset": {
+        "from": "StartCheckTime"
+      },
+      "comment": "Fail to start check"
+    },
+    {
+      "id": "stop_check",
+      "preset": {
+        "from": "StopCheckTime"
+      },
+      "comment": "Fail to stop check"
+    }
   ],
   "logic_sections": [
     {
@@ -807,11 +1064,356 @@ See the example spec (`examples/pump_run_monitor.json`) for a complete correct s
     "disabled_status": "Disabled",
     "unknown_status": "Error/Unknown",
     "states": [
-      { "value": 9, "name": "Fault", "condition": "Fault", "status": "Fault: Check pump and reset" },
-      { "value": 1, "name": "Starting", "condition": "{timer:start_check}.IN", "status": "Starting: Waiting for run feedback" },
-      { "value": 2, "name": "Running", "condition": "RunCmd AND RunFbk", "status": "Running" },
-      { "value": 3, "name": "Stopping", "condition": "{timer:stop_check}.IN", "status": "Stopping: Waiting for feedback to drop" },
-      { "value": 0, "name": "Stopped", "condition": "ELSE", "status": "Stopped" }
+      {
+        "value": 9,
+        "name": "Fault",
+        "condition": "Fault",
+        "status": "Fault: Check pump and reset"
+      },
+      {
+        "value": 1,
+        "name": "Starting",
+        "condition": "{timer:start_check}.IN",
+        "status": "Starting: Waiting for run feedback"
+      },
+      {
+        "value": 2,
+        "name": "Running",
+        "condition": "RunCmd AND RunFbk",
+        "status": "Running"
+      },
+      {
+        "value": 3,
+        "name": "Stopping",
+        "condition": "{timer:stop_check}.IN",
+        "status": "Stopping: Waiting for feedback to drop"
+      },
+      {
+        "value": 0,
+        "name": "Stopped",
+        "condition": "ELSE",
+        "status": "Stopped"
+      }
+    ]
+  }
+}
+</script>
+<script type="application/json" id="embed-examples/duty_pump_2.json">
+{
+  "fds": [
+    "# 1 Purpose and scope",
+    "Controls two pumps on a wet well level as a duty/standby pair. One pump (duty) runs on rising level, the second (assist) joins on high level, and the duty role alternates each pump-down cycle. Pump protection, starters and manual control are outside this block; it only issues run commands to available pumps.",
+    "",
+    "# 2 Description of operation",
+    "When the level rises to StartLevel and stays there for StartDelay seconds, the duty pump starts. If the level keeps rising to AssistLevel for AssistDelay seconds, the other pump starts as well. Both pumps stop when the level falls to StopLevel. At the end of each cycle the duty role swaps to the other pump, which evens out run hours. If the duty pump is not available, the standby pump takes its place.",
+    "",
+    "# 3 Control logic",
+    "3.1 While Enable is FALSE both pumps are off, requests are cleared and StatusString shows \"Disabled\". The duty selection is kept.",
+    "3.2 The lead request (LeadReq) turns on when Level ≥ StartLevel continuously for StartDelay s.",
+    "3.3 The assist request (AssistReq) turns on when LeadReq is on and Level ≥ AssistLevel continuously for AssistDelay s.",
+    "3.4 Both requests turn off when Level ≤ StopLevel.",
+    "3.5 Each time LeadReq turns off, the duty pump swaps (pump 1 ↔ pump 2).",
+    "3.6 The lead request goes to the duty pump if it is available, otherwise to the standby pump if that is available.",
+    "3.7 The assist request goes to the pump not used for the lead request.",
+    "3.8 A pump only runs while its PumpNAvail input is TRUE.",
+    "3.9 NoPumpAvail turns on while LeadReq is on and neither pump is available.",
+    "",
+    "# 4 Alarms and faults",
+    "| Alarm | Raised when | Latches | Reset |",
+    "|---|---|---|---|",
+    "| NoPumpAvail | Pumping required and no pump available | No | Clears when a pump becomes available or the level drops to StopLevel |",
+    "",
+    "Pump faults themselves are handled outside this block and arrive as PumpNAvail = FALSE.",
+    "",
+    "# 5 Operator interface",
+    "Adjustable: StartLevel, StopLevel, AssistLevel, StartDelay, AssistDelay. Shown: Pump1Run, Pump2Run, DutyPump, NoPumpAvail, State and StatusString.",
+    "",
+    "# 6 Assumptions and open points",
+    "- ASSUMPTION: Level is in % of span (0-100).",
+    "- ASSUMPTION: defaults start 60 %, stop 20 %, assist 80 %, delays 5 s and 10 s.",
+    "- ASSUMPTION: author and family not given; placeholders AUTHOR and FAMILY used.",
+    "- Open point: no maximum run time or minimum off time; add if the pumps need it.",
+    "- Open point: StopLevel must be set below StartLevel and AssistLevel; the block does not check this.",
+    "",
+    "# 7 Test plan",
+    "| No. | Action | Expected result |",
+    "|---|---|---|",
+    "| 1 | Both pumps available, raise Level to 65 % | After 5 s the duty pump runs, State 2 |",
+    "| 2 | Raise Level to 85 % | After 10 s both pumps run, State 3 |",
+    "| 3 | Drop Level to 15 % | Both pumps stop, DutyPump swaps to the other pump |",
+    "| 4 | Repeat test 1 | The other pump now starts first |",
+    "| 5 | Duty pump not available, raise Level to 65 % | Standby pump starts after 5 s |",
+    "| 6 | Neither pump available, raise Level to 65 % | After 5 s NoPumpAvail on, State 9 |",
+    "| 7 | Level at 65 % for 3 s, then back to 50 % | No pump starts (start delay not reached) |",
+    "| 8 | Set Enable FALSE while pumping | Both pumps stop, \"Disabled\" shown |"
+  ],
+  "pseudo_code": [
+    "// Level control",
+    "start_delay runs while Level >= StartLevel AND NOT LeadReq",
+    "IF start_delay done THEN LeadReq = TRUE",
+    "assist_delay runs while LeadReq AND NOT AssistReq AND Level >= AssistLevel",
+    "IF assist_delay done THEN AssistReq = TRUE",
+    "IF Level <= StopLevel THEN",
+    "    LeadReq = FALSE",
+    "    AssistReq = FALSE",
+    "END IF",
+    "",
+    "// Duty alternation",
+    "IF LeadReq has just turned off THEN swap duty pump",
+    "",
+    "// Pump selection",
+    "lead pump = duty pump if available, else standby pump if available",
+    "Pump1Run = Pump1Avail AND ((LeadReq AND lead is pump 1) OR (AssistReq AND lead is pump 2))",
+    "Pump2Run = Pump2Avail AND ((LeadReq AND lead is pump 2) OR (AssistReq AND lead is pump 1))",
+    "DutyPump = 2 if pump 2 is duty, else 1",
+    "NoPumpAvail = LeadReq AND NOT Pump1Avail AND NOT Pump2Avail"
+  ],
+  "spec_version": "1.0",
+  "block": {
+    "name": "DutyPump2",
+    "title": "Two pump duty/standby level controller",
+    "author": "AUTHOR",
+    "family": "FAMILY",
+    "short_name": "DUTY2",
+    "version": "1.0",
+    "know_how_protect": true,
+    "purpose": "Runs one of two pumps on rising level, alternates duty each cycle, brings in the second pump on high level.",
+    "how_it_works": [
+      "Lead request starts when Level stays at or above StartLevel for StartDelay seconds and stops at or below StopLevel.",
+      "Assist request starts when Level stays at or above AssistLevel for AssistDelay seconds while lead is running.",
+      "Duty swaps between pumps each time the lead request ends. An unavailable duty pump is replaced by the standby pump.",
+      "ASSUMPTION: levels in % (0-100); start 60, stop 20, assist 80; delays 5 s and 10 s."
+    ]
+  },
+  "enable_input": "Enable",
+  "sample_time_input": "SampleTime",
+  "inputs": [
+    {
+      "name": "Enable",
+      "type": "BOOL",
+      "initial": true,
+      "attr_preset": "hmi",
+      "comment": "Block enable, auto mode"
+    },
+    {
+      "name": "Level",
+      "type": "REAL",
+      "initial": 0.0,
+      "attr_preset": "param",
+      "comment": "Wet well level (%)"
+    },
+    {
+      "name": "StartLevel",
+      "type": "REAL",
+      "initial": 60.0,
+      "attr_preset": "param",
+      "comment": "Lead pump start level (%)"
+    },
+    {
+      "name": "StopLevel",
+      "type": "REAL",
+      "initial": 20.0,
+      "attr_preset": "param",
+      "comment": "All pumps stop level (%)"
+    },
+    {
+      "name": "AssistLevel",
+      "type": "REAL",
+      "initial": 80.0,
+      "attr_preset": "param",
+      "comment": "Assist pump start level (%)"
+    },
+    {
+      "name": "StartDelay",
+      "type": "REAL",
+      "initial": 5.0,
+      "attr_preset": "param",
+      "comment": "Seconds above StartLevel before lead starts"
+    },
+    {
+      "name": "AssistDelay",
+      "type": "REAL",
+      "initial": 10.0,
+      "attr_preset": "param",
+      "comment": "Seconds above AssistLevel before assist starts"
+    },
+    {
+      "name": "Pump1Avail",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Pump 1 available (auto, healthy, no fault)"
+    },
+    {
+      "name": "Pump2Avail",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Pump 2 available (auto, healthy, no fault)"
+    },
+    {
+      "name": "SampleTime",
+      "type": "REAL",
+      "attr_preset": "sampletime",
+      "comment": "Cycle time of the PLC in seconds, used for timer logic"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Pump1Run",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Run command to pump 1"
+    },
+    {
+      "name": "Pump2Run",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Run command to pump 2"
+    },
+    {
+      "name": "DutyPump",
+      "type": "INT",
+      "initial": 1,
+      "attr_preset": "hmi",
+      "comment": "Current duty pump number, 1 or 2"
+    },
+    {
+      "name": "NoPumpAvail",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Alarm, pumping required but no pump available"
+    },
+    {
+      "name": "State",
+      "type": "INT",
+      "initial": 0,
+      "attr_preset": "hmi",
+      "comment": "State, 0 = idle, 1 = start delay, 2 = lead running, 3 = lead and assist, 9 = no pump"
+    },
+    {
+      "name": "StatusString",
+      "type": "STRING[50]",
+      "attr_preset": "hmi",
+      "comment": "Diagnostic status for the operator screen"
+    }
+  ],
+  "statics": [
+    {
+      "name": "LeadReq",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "One pump required"
+    },
+    {
+      "name": "AssistReq",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "Second pump required"
+    },
+    {
+      "name": "LeadReqPrev",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "LeadReq last scan, for duty alternation"
+    },
+    {
+      "name": "DutyIsP2",
+      "type": "BOOL",
+      "initial": false,
+      "reset_on_disable": false,
+      "comment": "TRUE when pump 2 is duty, kept through disable"
+    },
+    {
+      "name": "LeadIsP1",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "Lead request goes to pump 1"
+    },
+    {
+      "name": "LeadIsP2",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "Lead request goes to pump 2"
+    }
+  ],
+  "timers": [
+    {
+      "id": "start_delay",
+      "preset": {
+        "from": "StartDelay"
+      },
+      "comment": "Level confirmed above start level"
+    },
+    {
+      "id": "assist_delay",
+      "preset": {
+        "from": "AssistDelay"
+      },
+      "comment": "Level confirmed above assist level"
+    }
+  ],
+  "logic_sections": [
+    {
+      "title": "Level control",
+      "description": [
+        "Lead and assist requests with start/stop hysteresis and confirmation delays."
+      ],
+      "scl": "{timer:start_delay}.IN := Level >= StartLevel AND NOT LeadReq; // Confirm level before starting\nIF {timer:start_delay}.Q THEN\n    LeadReq := TRUE;\n    {timer:start_delay}.RESET := TRUE;\nEND_IF;\n\n{timer:assist_delay}.IN := LeadReq AND NOT AssistReq AND Level >= AssistLevel; // Confirm high level\nIF {timer:assist_delay}.Q THEN\n    AssistReq := TRUE;\n    {timer:assist_delay}.RESET := TRUE;\nEND_IF;\n\nIF Level <= StopLevel THEN\n    LeadReq := FALSE; // Pumped down, stop everything\n    AssistReq := FALSE;\nEND_IF;"
+    },
+    {
+      "title": "Duty alternation",
+      "description": [
+        "Duty swaps to the other pump each time a pump-down cycle ends to even out run hours."
+      ],
+      "scl": "IF LeadReqPrev AND NOT LeadReq THEN\n    DutyIsP2 := NOT DutyIsP2; // Cycle finished, swap duty\nEND_IF;\nLeadReqPrev := LeadReq;"
+    },
+    {
+      "title": "Pump selection",
+      "description": [
+        "Lead goes to the duty pump, or to the standby pump if duty is unavailable. Assist uses the other pump."
+      ],
+      "scl": "LeadIsP1 := (NOT DutyIsP2 AND Pump1Avail) OR (DutyIsP2 AND NOT Pump2Avail AND Pump1Avail);\nLeadIsP2 := (DutyIsP2 AND Pump2Avail) OR (NOT DutyIsP2 AND NOT Pump1Avail AND Pump2Avail);\n\nPump1Run := Pump1Avail AND ((LeadReq AND LeadIsP1) OR (AssistReq AND LeadIsP2));\nPump2Run := Pump2Avail AND ((LeadReq AND LeadIsP2) OR (AssistReq AND LeadIsP1));\n\nIF DutyIsP2 THEN\n    DutyPump := 2;\nELSE\n    DutyPump := 1;\nEND_IF;\nNoPumpAvail := LeadReq AND NOT Pump1Avail AND NOT Pump2Avail; // Pumping needed, nothing to run"
+    }
+  ],
+  "state_machine": {
+    "state_output": "State",
+    "status_output": "StatusString",
+    "safe_value": 0,
+    "states": [
+      {
+        "value": 9,
+        "name": "No pump available",
+        "condition": "NoPumpAvail",
+        "status": "Alarm: No pump available"
+      },
+      {
+        "value": 3,
+        "name": "Lead and assist",
+        "condition": "Pump1Run AND Pump2Run",
+        "status": "Running: Both pumps"
+      },
+      {
+        "value": 2,
+        "name": "Lead running",
+        "condition": "Pump1Run OR Pump2Run",
+        "status": "Running: Duty pump"
+      },
+      {
+        "value": 1,
+        "name": "Start delay",
+        "condition": "{timer:start_delay}.IN",
+        "status": "Level high: Start delay timing"
+      },
+      {
+        "value": 0,
+        "name": "Idle",
+        "condition": "ELSE",
+        "status": "Idle: Level normal"
+      }
     ]
   }
 }
@@ -1988,14 +2590,22 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
   const $ = (id) => document.getElementById(id);
   const ta = $('spec'), statusEl = $('status'), problemsEl = $('problems'), sclEl = $('scl');
   const STORE = 'sclgen.v1';
-  let current = null;       // last result
+  let current = null;       // last engine result (+ .probs, .obj)
   let fileName = 'untitled.json';
   let userTab = null;       // tab the user picked
+  let resultOn = false;     // show the step 3 result card
 
   const embed = (name) => $('embed-' + name).textContent.replace(/^\n/, '');
   const examples = {
     pump_run_monitor: () => embed('examples/pump_run_monitor.json'),
     template_threshold: () => embed('examples/template_threshold.json'),
+    duty_pump_2: () => embed('examples/duty_pump_2.json'),
+  };
+  const IDEAS = {
+    duty: 'Two pump duty/standby controller on wet well level (0-100 %). Start the duty pump at 60 % after 5 s, stop all pumps at 20 %, bring in the second pump at 80 % after 10 s. Alternate duty each pump-down cycle. If the duty pump is not available, run the other one. Alarm if pumping is needed and no pump is available. Show the state on the HMI.',
+    valve: 'Motorised valve with open and close commands and open/closed limit switches. Alarm if the valve does not reach the commanded position within a travel time (default 60 s), or if both limits are on together. Faults latch until reset. Show the valve state (opening, open, closing, closed, fault) on the HMI.',
+    alarm: 'Analog alarm block for a pressure transmitter (0-1000 kPa). Four alarms: high high, high, low and low low, each with its own setpoint, a common deadband and a 3 s on-delay. Alarms latch until acknowledged. Bad signal alarm if the value is below -2 % or above 102 % of range for 2 s.',
+    runhours: 'Pump run hours and starts counter. Counts run hours while the run feedback is on (resolution 0.1 h) and the number of starts. Operator can reset both counters. Alarm when run hours since last service exceed a service interval (default 2000 h).',
   };
 
   // ---- storage (may be unavailable) ----
@@ -2009,7 +2619,7 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
   }
   function download(name, text, type) {
     const url = URL.createObjectURL(new Blob([text], { type }));
@@ -2029,8 +2639,10 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
       return ok;
     }
   }
-  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  const lines = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string').join('\n') : typeof v === 'string' ? v : '');
+  const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 
   // ---- SCL highlighting ----
   const KW = 'FUNCTION_BLOCK|END_FUNCTION_BLOCK|VAR_INPUT|VAR_OUTPUT|VAR_IN_OUT|VAR_TEMP|VAR|END_VAR|BEGIN|IF|THEN|ELSIF|ELSE|END_IF|CASE|OF|END_CASE|FOR|TO|BY|DO|END_FOR|WHILE|END_WHILE|REPEAT|UNTIL|END_REPEAT|RETURN|EXIT|AND|OR|XOR|NOT|MOD|DIV|TRUE|FALSE|STRUCT|END_STRUCT|ARRAY|TITLE|AUTHOR|FAMILY|NAME|VERSION|KNOW_HOW_PROTECT';
@@ -2049,20 +2661,150 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
     return out + esc(line.slice(last));
   }
 
-  // ---- tabs ----
-  function showTab(which) {
-    const p = which === 'problems';
-    $('tabProblems').setAttribute('aria-selected', String(p));
-    $('tabScl').setAttribute('aria-selected', String(!p));
-    $('viewProblems').hidden = !p;
-    $('viewScl').hidden = p;
+  // ---- small, safe Markdown renderer for the FDS (escapes everything first) ----
+  function inline(t) {
+    return esc(t)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[\s(])\*([^*\s][^*]*)\*(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>');
   }
-  $('tabProblems').onclick = () => { userTab = 'problems'; showTab('problems'); };
-  $('tabScl').onclick = () => { userTab = 'scl'; showTab('scl'); };
+  function md(src, shift) {
+    const L = src.replace(/\r\n?/g, '\n').split('\n');
+    const out = [];
+    let para = [], list = null;
+    const flushPara = () => { if (para.length) { out.push(`<p>${inline(para.join(' '))}</p>`); para = []; } };
+    const flushList = () => { if (list) { out.push(`<${list.tag}>${list.items.map((i) => `<li>${inline(i)}</li>`).join('')}</${list.tag.split(' ')[0]}>`); list = null; } };
+    const cells = (row) => row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+    for (let i = 0; i < L.length; i++) {
+      const line = L[i];
+      let m;
+      if (/^\s*```/.test(line)) {
+        flushPara(); flushList();
+        const buf = [];
+        while (++i < L.length && !/^\s*```/.test(L[i])) buf.push(L[i]);
+        out.push(`<pre>${esc(buf.join('\n'))}</pre>`);
+      } else if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
+        flushPara(); flushList();
+        const lvl = Math.min(6, m[1].length + shift);
+        out.push(`<h${lvl}>${inline(m[2].replace(/\s+#+\s*$/, ''))}</h${lvl}>`);
+      } else if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+        flushPara(); flushList(); out.push('<hr>');
+      } else if (/^\s*\|/.test(line) && i + 1 < L.length && /^\s*\|?\s*:?-{2,}/.test(L[i + 1])) {
+        flushPara(); flushList();
+        const head = cells(line);
+        i++;
+        const rows = [];
+        while (i + 1 < L.length && /^\s*\|/.test(L[i + 1])) rows.push(cells(L[++i]));
+        out.push('<table><thead><tr>' + head.map((c) => `<th>${inline(c)}</th>`).join('') + '</tr></thead><tbody>' +
+          rows.map((r) => '<tr>' + head.map((_, k) => `<td>${inline(r[k] || '')}</td>`).join('') + '</tr>').join('') + '</tbody></table>');
+      } else if ((m = /^\s*(?:(?:[-*+]|\d+[.)])\s+)?(\d+(?:\.\d+)+\s.*)$/.exec(line))) {
+        // a rule numbered like "3.1 ..." (with or without a list marker): keep its own number
+        flushPara();
+        if (!list || list.tag !== 'ul class="rules"') { flushList(); list = { tag: 'ul class="rules"', items: [] }; }
+        list.items.push(m[1]);
+      } else if ((m = /^\s*([-*+]|\d+[.)])\s+(.*)$/.exec(line))) {
+        flushPara();
+        const tag = /\d/.test(m[1]) ? 'ol' : 'ul';
+        if (!list || list.tag !== tag) { flushList(); list = { tag, items: [] }; }
+        list.items.push(m[2]);
+      } else if (!line.trim()) {
+        flushPara(); flushList();
+      } else if (list && /^\s{2,}\S/.test(line)) {
+        list.items[list.items.length - 1] += ' ' + line.trim();
+      } else {
+        flushList(); para.push(line.trim());
+      }
+    }
+    flushPara(); flushList();
+    return out.join('\n');
+  }
 
-  // ---- jump to a location in the editor ----
+  // ---- FDS document: AI's written sections + appendices built from the spec ----
+  const PRESET_LABEL = { hmi: 'HMI', param: 'Parameter', sampletime: 'System', none: '' };
+  function initialText(v) {
+    if (!('initial' in v)) return '';
+    const x = v.initial;
+    return typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE') : String(x);
+  }
+  function varTable(list) {
+    if (!Array.isArray(list) || !list.length) return '<p class="muted">None.</p>';
+    return '<table><thead><tr><th>Name</th><th>Type</th><th>Initial</th><th>Use</th><th>Description</th></tr></thead><tbody>' +
+      list.filter(isObj).map((v) => `<tr><td><code>${esc(v.name)}</code></td><td>${esc(v.type || '')}</td><td>${esc(initialText(v))}</td><td>${esc(PRESET_LABEL[v.attr_preset || 'none'] || '')}</td><td>${inline(v.comment || '')}</td></tr>`).join('') +
+      '</tbody></table>';
+  }
+  function fdsHtml(withScl) {
+    const o = current && current.obj;
+    if (!o) return '<p class="note">Paste the AI\'s reply in step 3 to see the FDS here.</p>';
+    const blk = isObj(o.block) ? o.block : {};
+    const today = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    const h = [];
+    h.push('<h1>Functional Design Specification</h1>');
+    h.push(`<p class="sub">${esc(blk.title || '')}</p>`);
+    h.push('<table class="meta"><tbody>' +
+      [['Block', `FUNCTION_BLOCK "${blk.name || ''}"`], ['Short name', blk.short_name], ['Version', blk.version],
+        ['Author', blk.author], ['Family', blk.family], ['Date', today], ['Generated by', `sclgen ${SCLGEN.version}`]]
+        .map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v == null ? '' : v)}</td></tr>`).join('') + '</tbody></table>');
+    const fds = lines(o.fds).trim();
+    if (fds) h.push(md(fds, 1));
+    else h.push('<p class="note">The AI did not include the written FDS sections (the <code>fds</code> field). The appendices below are built from the block itself. Use <b>Copy fix request</b> in step 3 to ask the AI for them.</p>');
+
+    h.push('<div class="appendix"><h2>Appendix A: Interface</h2>');
+    h.push('<p class="muted">Generated from the block, so it always matches the SCL.</p>');
+    h.push('<h3>Inputs</h3>' + varTable(o.inputs));
+    h.push('<h3>Outputs</h3>' + varTable(o.outputs));
+    if (Array.isArray(o.in_outs) && o.in_outs.length) h.push('<h3>In/outs</h3>' + varTable(o.in_outs));
+    h.push('<h3>Internal variables</h3>' + varTable(o.statics));
+    h.push('</div>');
+
+    const timers = Array.isArray(o.timers) ? o.timers.filter(isObj) : [];
+    h.push('<h2>Appendix B: Timers</h2>');
+    if (!timers.length) h.push('<p class="muted">None.</p>');
+    else {
+      const find = (n) => [].concat(o.inputs || [], o.statics || []).find((v) => isObj(v) && String(v.name).toLowerCase() === String(n).toLowerCase());
+      h.push('<table><thead><tr><th>Timer</th><th>Preset</th><th>Description</th></tr></thead><tbody>' + timers.map((t, i) => {
+        const p = isObj(t.preset) ? t.preset : {};
+        let pre = '';
+        if ('seconds' in p) pre = `${p.seconds} s (fixed)`;
+        else if ('from' in p) { const v = find(p.from); pre = `From <code>${esc(p.from)}</code>` + (v && 'initial' in v ? `, default ${esc(v.initial)} s` : ''); }
+        return `<tr><td><code>${esc(t.id)}</code> (tmTimers[${i}])</td><td>${pre}</td><td>${inline(t.comment || '')}</td></tr>`;
+      }).join('') + '</tbody></table>');
+    }
+
+    const sm = isObj(o.state_machine) ? o.state_machine : {};
+    const states = Array.isArray(sm.states) ? sm.states.filter(isObj) : [];
+    h.push(`<h2>Appendix C: States and HMI messages</h2><p>State on <code>${esc(sm.state_output || '')}</code>, message on <code>${esc(sm.status_output || '')}</code>. States are tested from the top; the first true condition wins.</p>`);
+    h.push('<table><thead><tr><th>Priority</th><th>Value</th><th>State</th><th>Condition</th><th>HMI message</th></tr></thead><tbody>' +
+      states.map((st, i) => `<tr><td>${i + 1}</td><td>${esc(st.value)}</td><td>${esc(st.name || '')}</td><td><code>${esc(String(st.condition || '').trim().toUpperCase() === 'ELSE' ? 'otherwise' : String(st.condition || '').replace(/\{timer:([A-Za-z_][A-Za-z0-9_]*)\}/g, '$1'))}</code></td><td>${esc(st.status || '')}</td></tr>`).join('') +
+      `<tr><td>-</td><td>${esc(sm.safe_value == null ? 0 : sm.safe_value)}</td><td>Disabled</td><td><code>NOT ${esc(o.enable_input || '')}</code></td><td>${esc(sm.disabled_status || 'Disabled')}</td></tr>` +
+      `<tr><td>-</td><td>${esc(sm.safe_value == null ? 0 : sm.safe_value)}</td><td>Unexpected value</td><td>fail-safe</td><td>${esc(sm.unknown_status || 'Error/Unknown')}</td></tr>` +
+      '</tbody></table>');
+
+    h.push('<h2>Appendix D: Standard block behaviour</h2><p class="muted">Built into every block by the template.</p><ul>' +
+      `<li>When <code>${esc(o.enable_input || 'the enable input')}</code> is FALSE, outputs and internal values return to their initial values, every timer is stopped and cleared, the status shows "${esc(sm.disabled_status || 'Disabled')}", and the block exits without running its logic.</li>` +
+      (timers.length ? `<li>Timer presets are written every scan, so changes take effect at once. Presets taken from inputs are limited to 0 to 86,400 s.</li>
+      <li>Timers count in seconds using <code>${esc(o.sample_time_input || 'SampleTime')}</code> (the PLC cycle time). A timer's output stays on while it is running and is cleared by its reset, which clears itself after one scan.</li>` : '') +
+      '<li>If the state value is ever unexpected, the block shows the fail-safe message and returns to the safe state on its own.</li></ul>');
+
+    const pseudo = lines(o.pseudo_code).trim();
+    h.push('<h2>Appendix E: Pseudo code</h2>' + (pseudo ? `<pre>${esc(pseudo)}</pre>` : '<p class="muted">Not provided.</p>'));
+    if (withScl && current.code) h.push(`<div class="appendix"><h2>Appendix F: SCL source</h2><pre>${esc(current.code)}</pre></div>`);
+    return h.join('\n');
+  }
+
+  // ---- tabs ----
+  const TABS = ['fds', 'pseudo', 'scl', 'problems', 'spec'];
+  function showTab(which) {
+    for (const t of TABS) {
+      $('tab-' + t).setAttribute('aria-selected', String(t === which));
+      $('view-' + t).hidden = t !== which;
+    }
+  }
+  for (const t of TABS) $('tab-' + t).onclick = () => { userTab = t; showTab(t); };
+
+  // ---- jump to a location in the JSON editor ----
   function jump(span) {
     if (!span) return;
+    userTab = 'spec'; showTab('spec');
     const [a, b] = span;
     ta.focus();
     ta.setSelectionRange(a, Math.max(a, b));
@@ -2078,6 +2820,7 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
       r = { jsonError: null, errors: [], warnings: [], crash: String(e), code: null };
     }
     current = r;
+    try { const o = JSON.parse(ta.value); current.obj = isObj(o) ? o : null; } catch (e) { current.obj = null; }
     const probs = [];
     if (r.jsonError) {
       const j = r.jsonError;
@@ -2087,9 +2830,12 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
     if (r.crash) probs.push({ sev: 'INTERNAL', where: 'spec', msg: `The generator could not handle this spec (${r.crash}). A field probably has the wrong type; check it against the schema.`, span: null });
     if (r.internal) for (const p of r.internal) probs.push({ sev: 'INTERNAL', where: p.where, msg: p.msg + '. The generated block is unbalanced, often from IF/THEN or END_IF inside a state condition.', span: null });
     for (const p of r.warnings) probs.push({ ...p, span: SCLGEN.locate(p.where, r.spec, r.spans, false) });
+    if (current.obj && !lines(current.obj.fds).trim()) probs.push({ sev: 'WARNING', where: 'fds', msg: 'no written FDS sections; the FDS will only have the generated appendices', span: null });
+    if (current.obj && !lines(current.obj.pseudo_code).trim()) probs.push({ sev: 'WARNING', where: 'pseudo_code', msg: 'no pseudo code', span: null });
+    current.probs = probs;
 
     const nErr = probs.filter((p) => p.sev !== 'WARNING').length;
-    const nWarn = r.warnings.length;
+    const nWarn = probs.length - nErr;
 
     // status pill
     if (r.code) {
@@ -2105,9 +2851,7 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
 
     // problems list
     problemsEl.textContent = '';
-    if (!probs.length) {
-      problemsEl.innerHTML = '<li class="empty nojump"><span><b>No problems</b>The spec is valid and the block was generated.</span></li>';
-    }
+    if (!probs.length) problemsEl.innerHTML = '<li class="empty nojump"><span><b>No problems</b>The block was generated.</span></li>';
     for (const p of probs) {
       const li = document.createElement('li');
       li.innerHTML = `<span class="sev ${p.sev}">${p.sev === 'WARNING' ? 'WARN' : p.sev === 'INTERNAL' ? 'ERROR' : p.sev}</span><span class="where">${esc(p.where)}</span><span class="msg">${esc(p.msg)}</span>`;
@@ -2120,63 +2864,85 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
       sclEl.innerHTML = r.code.replace(/\n$/, '').split('\n').map((l) => `<span class="l">${highlight(l) || ' '}</span>`).join('');
       sclEl.style.opacity = '';
     } else if (!sclEl.textContent) {
-      sclEl.innerHTML = '<span class="empty" style="display:block">Fix the errors to see the SCL.</span>';
+      sclEl.innerHTML = '<span class="empty" style="display:block">Fix the problems to see the SCL block.</span>';
     } else {
       sclEl.style.opacity = '.35';
     }
+
+    // FDS and pseudo code views
+    $('fds').innerHTML = r.code ? fdsHtml(false) : (current.obj ? '<p class="note">Fix the problems first; the FDS is shown once the block builds.</p>' : fdsHtml(false));
+    const pseudo = current.obj ? lines(current.obj.pseudo_code).trim() : '';
+    $('pseudo').textContent = pseudo || (current.obj ? 'The AI did not include pseudo code.' : 'Paste the AI\'s reply in step 3 to see the pseudo code here.');
+
     $('dlBtn').disabled = !r.code;
     $('copyBtn').disabled = !r.code;
+    $('pdfBtn').disabled = !r.code;
     $('dlBtn').textContent = r.code ? `Download ${r.fileName}` : 'Download .scl';
 
-    if (!r.code) showTab('problems');
-    else showTab(userTab || 'scl');
-    current.probs = probs;
+    if (!r.code) showTab(userTab === 'spec' ? 'spec' : 'problems');
+    else showTab(userTab || 'fds');
     if (resultOn) renderResult();
   }
 
-  // ---- guided steps: prompt, paste & go, fix request ----
-  let resultOn = false;
+  let timer;
+  ta.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { check(); save(); }, 200); });
+
+  function setText(text, name) {
+    ta.value = text;
+    fileName = name;
+    $('fname').textContent = name;
+    ta.scrollTop = 0;
+    sclEl.textContent = '';
+    userTab = null;
+    check();
+    if (current && current.code && name === 'untitled.json') { fileName = current.fileName.replace(/\.scl$/, '.json'); $('fname').textContent = fileName; }
+    save();
+  }
+
+  // ---- step 3 result card and fix request ----
   const resultEl = $('result');
   const fence = (lang, body) => '```' + lang + '\n' + body.replace(/\s+$/, '') + '\n```';
-  function probLine(p) {
-    const tag = p.sev === 'WARNING' ? 'WARNING' : 'ERROR';
-    return `${tag} ${p.where}: ${p.msg}`;
-  }
+  const probLine = (p) => `${p.sev === 'WARNING' ? 'WARNING' : 'ERROR'} ${p.where}: ${p.msg}`;
   function renderResult() {
     const r = current;
     resultEl.textContent = '';
     if (!r) return;
+    const probs = r.probs || [];
+    const warns = probs.filter((p) => p.sev === 'WARNING');
     if (r.code) {
       resultEl.className = 'ok';
-      const nWarn = r.warnings.length;
-      resultEl.innerHTML = `<strong>✓ ${esc(r.fileName)} is ready</strong>` +
-        `<span style="color:var(--ink)">${r.lineCount} lines of SCL, shown below.` +
-        (nWarn ? ` ${plural(nWarn, 'warning')}: worth a look, but the block was built.` : '') +
-        ` Compile and test it before use.</span>` +
+      resultEl.innerHTML = `<strong>✓ ${esc((current.obj && current.obj.block && current.obj.block.name) || 'Block')} is ready</strong>` +
+        `<span style="color:var(--ink)">FDS, pseudo code and a ${r.lineCount}-line SCL block, shown below.` +
+        (warns.length ? ` ${plural(warns.length, 'warning')} in Problems: worth a look, but the block was built.` : '') +
+        ' Compile and test it before use.</span>' +
         `<div class="row"><button class="btn primary" type="button" data-act="dl">Download ${esc(r.fileName)}</button>` +
-        (nWarn ? '<button class="btn" type="button" data-act="fix">Copy fix request</button>' : '') + '</div>';
+        '<button class="btn" type="button" data-act="pdf">Save FDS as PDF</button>' +
+        (warns.length ? '<button class="btn" type="button" data-act="fix">Copy fix request</button>' : '') + '</div>';
     } else {
       resultEl.className = 'err';
-      const probs = (r.probs || []).filter((p) => p.sev !== 'WARNING');
-      const items = probs.slice(0, 8).map((p) => `<li>${esc(p.msg)} <span class="where">(${esc(p.where)})</span></li>`).join('') +
-        (probs.length > 8 ? `<li>…and ${probs.length - 8} more</li>` : '');
-      resultEl.innerHTML = `<strong>The AI's spec has ${plural(probs.length || 1, 'problem')}</strong>` +
+      const errs = probs.filter((p) => p.sev !== 'WARNING');
+      const items = errs.slice(0, 8).map((p) => `<li>${esc(p.msg)} <span class="where">(${esc(p.where)})</span></li>`).join('') +
+        (errs.length > 8 ? `<li>…and ${errs.length - 8} more</li>` : '');
+      resultEl.innerHTML = `<strong>The AI's reply has ${plural(errs.length || 1, 'problem')}</strong>` +
         (items ? `<ul>${items}</ul>` : '') +
         '<span style="color:var(--ink)">Click <b>Copy fix request</b>, paste it into the same AI chat, then copy its new reply and click <b>Paste &amp; go</b> again.</span>' +
         '<div class="row"><button class="btn primary" type="button" data-act="fix">Copy fix request</button></div>';
     }
   }
   resultEl.addEventListener('click', async (e) => {
-    const act = e.target.closest('button') && e.target.closest('button').dataset.act;
+    const btn = e.target.closest('button');
+    const act = btn && btn.dataset.act;
     if (act === 'dl') $('dlBtn').click();
+    if (act === 'pdf') $('pdfBtn').click();
     if (act === 'fix') {
       const probs = (current && current.probs) || [];
       const errs = probs.filter((p) => p.sev !== 'WARNING'), warns = probs.filter((p) => p.sev === 'WARNING');
+      const tail = '\n\nReply with the complete corrected JSON object (including fds and pseudo_code) in one ```json code block, with no other text.';
       let msg = errs.length
-        ? 'The SCL generator rejected your JSON spec. Fix these problems and reply with the complete corrected spec only, in one ```json code block:\n\n' + errs.map(probLine).join('\n')
-        : 'The SCL generator accepted your JSON spec but reported these warnings. Fix them if they are real problems and reply with the complete corrected spec only, in one ```json code block:\n\n' + warns.map(probLine).join('\n');
+        ? 'The SCL generator rejected your JSON. Fix these problems:\n\n' + errs.map(probLine).join('\n')
+        : 'The SCL generator built the block but reported these warnings. Fix them where they are real problems:\n\n' + warns.map(probLine).join('\n');
       if (errs.length && warns.length) msg += '\n\nAlso check these warnings:\n' + warns.map(probLine).join('\n');
-      toast((await copy(msg)) ? 'Fix request copied: paste it into the AI chat' : 'Copy failed: your browser blocked it');
+      toast((await copy(msg + tail)) ? 'Fix request copied: paste it into the AI chat' : 'Copy failed: your browser blocked it');
     }
   });
 
@@ -2185,43 +2951,63 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
     resultOn = true;
     if (!spec) {
       resultEl.className = 'err';
-      resultEl.innerHTML = '<strong>No JSON spec found in that text</strong><span style="color:var(--ink)">Copy the AI\'s whole reply, including the part in the code block, and try again. If the AI asked you questions instead, answer them in the chat first.</span>';
+      resultEl.innerHTML = '<strong>No JSON found in that text</strong><span style="color:var(--ink)">Copy the AI\'s reply again using the copy button on its code block. If the AI asked questions instead, tell it to choose sensible defaults and reply with the JSON.</span>';
       return;
     }
     setText(spec, 'untitled.json');
-    if (current && current.code) { fileName = current.fileName.replace(/\.scl$/, '.json'); $('fname').textContent = fileName; save(); }
+    userTab = null;
+    showTab(current && current.code ? 'fds' : 'problems');
     $('pasteBox').value = '';
   }
 
-  $('promptBtn').onclick = async () => {
-    const desc = $('desc').value.trim();
-    if (!desc) { $('desc').focus(); toast('Describe your block first (step 1)'); return; }
-    const text = [
-      '# Task: write a JSON block spec for an SCL function block',
+  // ---- step 2: the prompt ----
+  function buildPrompt(desc) {
+    let exampleScl = '';
+    try { exampleScl = SCLGEN.run(examples.pump_run_monitor()).code || ''; } catch (e) { exampleScl = ''; }
+    return [
+      '# Task: design a PLC function block and return it as JSON',
       '',
-      'I am using an offline generator that turns a JSON spec into a Siemens SCL FUNCTION_BLOCK built on fixed template rules. Your job is to write that JSON spec for the block described at the end. Follow these instructions exactly.',
+      'I use an offline generator that reads one JSON object and builds a Siemens SCL FUNCTION_BLOCK from fixed template rules, plus a Functional Design Specification (FDS) document. You are the middle man: turn my idea (at the end) into that JSON, exactly in the format below. Follow these instructions exactly.',
       '',
       embed('AI_INSTRUCTIONS.md').replace(/\s+$/, ''),
       '',
-      '## Schema: the spec must validate against this',
+      '### Example JSON',
+      '',
+      fence('json', examples.pump_run_monitor()),
+      '',
+      '### SCL the generator builds from that example (for reference; you never write this)',
+      '',
+      fence('text', exampleScl),
+      '',
+      '## Schema: your JSON must validate against this',
       '',
       fence('json', embed('schema/block_spec.schema.json')),
       '',
-      '## Example of a complete, correct spec (a different block, for reference only)',
-      '',
-      fence('json', embed('examples/pump_run_monitor.json')),
-      '',
-      '## The block I need',
+      '## My idea',
       '',
       desc,
       '',
-      '## Reply format',
+      '## Reply',
       '',
-      'Reply with the complete JSON spec only, in one ```json code block, with no other text. Do not ask questions: where information is missing, choose a sensible default and record it in block.how_it_works starting with "ASSUMPTION:".',
+      'Reply with the complete JSON object only (fds, pseudo_code and the block spec), in one ```json code block, with no text before or after it. Do not ask questions: where information is missing, choose a safe, sensible default and list it in FDS section 6.',
       '',
     ].join('\n');
-    toast((await copy(text)) ? 'Prompt copied: paste it into your AI chat' : 'Copy failed: your browser blocked it');
+  }
+  $('promptBtn').onclick = async () => {
+    const desc = $('desc').value.trim();
+    if (!desc) { $('desc').focus(); toast('Describe your idea first (step 1)'); return; }
+    toast((await copy(buildPrompt(desc))) ? 'Prompt copied: paste it into your AI chat' : 'Copy failed: your browser blocked it');
   };
+
+  // ---- clickable examples ----
+  document.querySelectorAll('[data-idea]').forEach((b) => { b.onclick = () => { $('desc').value = IDEAS[b.dataset.idea]; save(); toast('Example idea filled in: now Copy prompt'); }; });
+  document.querySelectorAll('[data-sample]').forEach((b) => { b.onclick = () => {
+    // wrap like a real AI reply, so the same extraction path is tested
+    goWith('Here is the JSON for your block:\n\n```json\n' + examples[b.dataset.sample]() + '```\n');
+    toast('Sample reply loaded');
+  }; });
+
+  // ---- step 3: paste & go ----
   $('pasteBtn').onclick = async () => {
     let text = null;
     try { text = await navigator.clipboard.readText(); } catch (e) { text = null; }
@@ -2236,30 +3022,32 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
   $('pasteBox').addEventListener('input', (e) => { if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop') goWith($('pasteBox').value); });
   $('desc').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(save, 300); });
 
-  let timer;
-  ta.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { check(); save(); }, 200); });
+  // ---- results toolbar ----
+  $('dlBtn').onclick = () => { if (current && current.code) download(current.fileName, current.fileText, 'text/plain'); };
+  $('copyBtn').onclick = async () => {
+    if (current && current.code) toast((await copy(current.code)) ? 'SCL copied' : 'Copy failed: your browser blocked it');
+  };
+  $('pdfBtn').onclick = () => {
+    if (!current || !current.code) return;
+    $('print').innerHTML = `<article class="doc">${fdsHtml(true)}</article>`;
+    const name = current.fileName.replace(/\.scl$/, '');
+    const oldTitle = document.title;
+    document.title = `${name} FDS`; // becomes the PDF file name in most browsers
+    const done = () => { document.title = oldTitle; removeEventListener('afterprint', done); };
+    addEventListener('afterprint', done);
+    window.print();
+  };
 
-  function setText(text, name) {
-    ta.value = text;
-    fileName = name;
-    $('fname').textContent = name;
-    ta.scrollTop = 0;
-    sclEl.textContent = '';
-    userTab = null;
-    check();
-    save();
-  }
-
-  // ---- toolbar ----
+  // ---- advanced: JSON tools ----
   $('openBtn').onclick = () => $('fileInput').click();
   $('fileInput').onchange = async (e) => {
     const f = e.target.files[0];
-    if (f) setText(await f.text(), f.name);
+    if (f) { resultOn = false; resultEl.className = ''; setText(await f.text(), f.name); }
     e.target.value = '';
   };
   $('exampleSel').onchange = (e) => {
     const k = e.target.value;
-    if (k) setText(examples[k](), `${k}.json`);
+    if (k) { resultOn = false; resultEl.className = ''; setText(examples[k](), `${k}.json`); }
     e.target.value = '';
   };
   $('saveBtn').onclick = () => {
@@ -2269,12 +3057,8 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
   };
   $('aiBtn').onclick = async () => {
     const text = embed('AI_INSTRUCTIONS.md').replace(/\s+$/, '') +
-      '\n\n## Schema: block_spec.schema.json\n\n```json\n' + embed('schema/block_spec.schema.json').replace(/\s+$/, '') + '\n```\n';
+      '\n\n## Schema: block_spec.schema.json\n\n' + fence('json', embed('schema/block_spec.schema.json')) + '\n';
     toast((await copy(text)) ? 'AI instructions and schema copied' : 'Copy failed: your browser blocked it');
-  };
-  $('dlBtn').onclick = () => { if (current && current.code) download(current.fileName, current.fileText, 'text/plain'); };
-  $('copyBtn').onclick = async () => {
-    if (current && current.code) toast((await copy(current.code)) ? 'SCL copied' : 'Copy failed: your browser blocked it');
   };
 
   // ---- drag and drop ----
@@ -2287,7 +3071,7 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
     depth = 0;
     document.body.classList.remove('dragging');
     const f = e.dataTransfer.files[0];
-    if (f) setText(await f.text(), f.name);
+    if (f) { resultOn = false; resultEl.className = ''; setText(await f.text(), f.name); }
   });
 
   // close the help popup when clicking elsewhere

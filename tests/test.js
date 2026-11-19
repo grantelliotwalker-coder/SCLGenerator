@@ -11,7 +11,7 @@ const { loadEngine, HTML } = require('./engine');
 
 const ROOT = path.join(__dirname, '..');
 const EMBEDS = ['AI_INSTRUCTIONS.md', 'schema/block_spec.schema.json',
-  'examples/pump_run_monitor.json', 'examples/template_threshold.json'];
+  'examples/pump_run_monitor.json', 'examples/template_threshold.json', 'examples/duty_pump_2.json'];
 const fix = process.argv.includes('--fix');
 let failed = 0, passed = 0;
 const ok = (cond, name, detail) => {

@@ -1,0 +1,318 @@
+{
+  "fds": [
+    "# 1 Purpose and scope",
+    "Controls two pumps on a wet well level as a duty/standby pair. One pump (duty) runs on rising level, the second (assist) joins on high level, and the duty role alternates each pump-down cycle. Pump protection, starters and manual control are outside this block; it only issues run commands to available pumps.",
+    "",
+    "# 2 Description of operation",
+    "When the level rises to StartLevel and stays there for StartDelay seconds, the duty pump starts. If the level keeps rising to AssistLevel for AssistDelay seconds, the other pump starts as well. Both pumps stop when the level falls to StopLevel. At the end of each cycle the duty role swaps to the other pump, which evens out run hours. If the duty pump is not available, the standby pump takes its place.",
+    "",
+    "# 3 Control logic",
+    "3.1 While Enable is FALSE both pumps are off, requests are cleared and StatusString shows \"Disabled\". The duty selection is kept.",
+    "3.2 The lead request (LeadReq) turns on when Level ≥ StartLevel continuously for StartDelay s.",
+    "3.3 The assist request (AssistReq) turns on when LeadReq is on and Level ≥ AssistLevel continuously for AssistDelay s.",
+    "3.4 Both requests turn off when Level ≤ StopLevel.",
+    "3.5 Each time LeadReq turns off, the duty pump swaps (pump 1 ↔ pump 2).",
+    "3.6 The lead request goes to the duty pump if it is available, otherwise to the standby pump if that is available.",
+    "3.7 The assist request goes to the pump not used for the lead request.",
+    "3.8 A pump only runs while its PumpNAvail input is TRUE.",
+    "3.9 NoPumpAvail turns on while LeadReq is on and neither pump is available.",
+    "",
+    "# 4 Alarms and faults",
+    "| Alarm | Raised when | Latches | Reset |",
+    "|---|---|---|---|",
+    "| NoPumpAvail | Pumping required and no pump available | No | Clears when a pump becomes available or the level drops to StopLevel |",
+    "",
+    "Pump faults themselves are handled outside this block and arrive as PumpNAvail = FALSE.",
+    "",
+    "# 5 Operator interface",
+    "Adjustable: StartLevel, StopLevel, AssistLevel, StartDelay, AssistDelay. Shown: Pump1Run, Pump2Run, DutyPump, NoPumpAvail, State and StatusString.",
+    "",
+    "# 6 Assumptions and open points",
+    "- ASSUMPTION: Level is in % of span (0-100).",
+    "- ASSUMPTION: defaults start 60 %, stop 20 %, assist 80 %, delays 5 s and 10 s.",
+    "- ASSUMPTION: author and family not given; placeholders AUTHOR and FAMILY used.",
+    "- Open point: no maximum run time or minimum off time; add if the pumps need it.",
+    "- Open point: StopLevel must be set below StartLevel and AssistLevel; the block does not check this.",
+    "",
+    "# 7 Test plan",
+    "| No. | Action | Expected result |",
+    "|---|---|---|",
+    "| 1 | Both pumps available, raise Level to 65 % | After 5 s the duty pump runs, State 2 |",
+    "| 2 | Raise Level to 85 % | After 10 s both pumps run, State 3 |",
+    "| 3 | Drop Level to 15 % | Both pumps stop, DutyPump swaps to the other pump |",
+    "| 4 | Repeat test 1 | The other pump now starts first |",
+    "| 5 | Duty pump not available, raise Level to 65 % | Standby pump starts after 5 s |",
+    "| 6 | Neither pump available, raise Level to 65 % | After 5 s NoPumpAvail on, State 9 |",
+    "| 7 | Level at 65 % for 3 s, then back to 50 % | No pump starts (start delay not reached) |",
+    "| 8 | Set Enable FALSE while pumping | Both pumps stop, \"Disabled\" shown |"
+  ],
+  "pseudo_code": [
+    "// Level control",
+    "start_delay runs while Level >= StartLevel AND NOT LeadReq",
+    "IF start_delay done THEN LeadReq = TRUE",
+    "assist_delay runs while LeadReq AND NOT AssistReq AND Level >= AssistLevel",
+    "IF assist_delay done THEN AssistReq = TRUE",
+    "IF Level <= StopLevel THEN",
+    "    LeadReq = FALSE",
+    "    AssistReq = FALSE",
+    "END IF",
+    "",
+    "// Duty alternation",
+    "IF LeadReq has just turned off THEN swap duty pump",
+    "",
+    "// Pump selection",
+    "lead pump = duty pump if available, else standby pump if available",
+    "Pump1Run = Pump1Avail AND ((LeadReq AND lead is pump 1) OR (AssistReq AND lead is pump 2))",
+    "Pump2Run = Pump2Avail AND ((LeadReq AND lead is pump 2) OR (AssistReq AND lead is pump 1))",
+    "DutyPump = 2 if pump 2 is duty, else 1",
+    "NoPumpAvail = LeadReq AND NOT Pump1Avail AND NOT Pump2Avail"
+  ],
+  "spec_version": "1.0",
+  "block": {
+    "name": "DutyPump2",
+    "title": "Two pump duty/standby level controller",
+    "author": "AUTHOR",
+    "family": "FAMILY",
+    "short_name": "DUTY2",
+    "version": "1.0",
+    "know_how_protect": true,
+    "purpose": "Runs one of two pumps on rising level, alternates duty each cycle, brings in the second pump on high level.",
+    "how_it_works": [
+      "Lead request starts when Level stays at or above StartLevel for StartDelay seconds and stops at or below StopLevel.",
+      "Assist request starts when Level stays at or above AssistLevel for AssistDelay seconds while lead is running.",
+      "Duty swaps between pumps each time the lead request ends. An unavailable duty pump is replaced by the standby pump.",
+      "ASSUMPTION: levels in % (0-100); start 60, stop 20, assist 80; delays 5 s and 10 s."
+    ]
+  },
+  "enable_input": "Enable",
+  "sample_time_input": "SampleTime",
+  "inputs": [
+    {
+      "name": "Enable",
+      "type": "BOOL",
+      "initial": true,
+      "attr_preset": "hmi",
+      "comment": "Block enable, auto mode"
+    },
+    {
+      "name": "Level",
+      "type": "REAL",
+      "initial": 0.0,
+      "attr_preset": "param",
+      "comment": "Wet well level (%)"
+    },
+    {
+      "name": "StartLevel",
+      "type": "REAL",
+      "initial": 60.0,
+      "attr_preset": "param",
+      "comment": "Lead pump start level (%)"
+    },
+    {
+      "name": "StopLevel",
+      "type": "REAL",
+      "initial": 20.0,
+      "attr_preset": "param",
+      "comment": "All pumps stop level (%)"
+    },
+    {
+      "name": "AssistLevel",
+      "type": "REAL",
+      "initial": 80.0,
+      "attr_preset": "param",
+      "comment": "Assist pump start level (%)"
+    },
+    {
+      "name": "StartDelay",
+      "type": "REAL",
+      "initial": 5.0,
+      "attr_preset": "param",
+      "comment": "Seconds above StartLevel before lead starts"
+    },
+    {
+      "name": "AssistDelay",
+      "type": "REAL",
+      "initial": 10.0,
+      "attr_preset": "param",
+      "comment": "Seconds above AssistLevel before assist starts"
+    },
+    {
+      "name": "Pump1Avail",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Pump 1 available (auto, healthy, no fault)"
+    },
+    {
+      "name": "Pump2Avail",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Pump 2 available (auto, healthy, no fault)"
+    },
+    {
+      "name": "SampleTime",
+      "type": "REAL",
+      "attr_preset": "sampletime",
+      "comment": "Cycle time of the PLC in seconds, used for timer logic"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Pump1Run",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Run command to pump 1"
+    },
+    {
+      "name": "Pump2Run",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Run command to pump 2"
+    },
+    {
+      "name": "DutyPump",
+      "type": "INT",
+      "initial": 1,
+      "attr_preset": "hmi",
+      "comment": "Current duty pump number, 1 or 2"
+    },
+    {
+      "name": "NoPumpAvail",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Alarm, pumping required but no pump available"
+    },
+    {
+      "name": "State",
+      "type": "INT",
+      "initial": 0,
+      "attr_preset": "hmi",
+      "comment": "State, 0 = idle, 1 = start delay, 2 = lead running, 3 = lead and assist, 9 = no pump"
+    },
+    {
+      "name": "StatusString",
+      "type": "STRING[50]",
+      "attr_preset": "hmi",
+      "comment": "Diagnostic status for the operator screen"
+    }
+  ],
+  "statics": [
+    {
+      "name": "LeadReq",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "One pump required"
+    },
+    {
+      "name": "AssistReq",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "Second pump required"
+    },
+    {
+      "name": "LeadReqPrev",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "LeadReq last scan, for duty alternation"
+    },
+    {
+      "name": "DutyIsP2",
+      "type": "BOOL",
+      "initial": false,
+      "reset_on_disable": false,
+      "comment": "TRUE when pump 2 is duty, kept through disable"
+    },
+    {
+      "name": "LeadIsP1",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "Lead request goes to pump 1"
+    },
+    {
+      "name": "LeadIsP2",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "Lead request goes to pump 2"
+    }
+  ],
+  "timers": [
+    {
+      "id": "start_delay",
+      "preset": {
+        "from": "StartDelay"
+      },
+      "comment": "Level confirmed above start level"
+    },
+    {
+      "id": "assist_delay",
+      "preset": {
+        "from": "AssistDelay"
+      },
+      "comment": "Level confirmed above assist level"
+    }
+  ],
+  "logic_sections": [
+    {
+      "title": "Level control",
+      "description": [
+        "Lead and assist requests with start/stop hysteresis and confirmation delays."
+      ],
+      "scl": "{timer:start_delay}.IN := Level >= StartLevel AND NOT LeadReq; // Confirm level before starting\nIF {timer:start_delay}.Q THEN\n    LeadReq := TRUE;\n    {timer:start_delay}.RESET := TRUE;\nEND_IF;\n\n{timer:assist_delay}.IN := LeadReq AND NOT AssistReq AND Level >= AssistLevel; // Confirm high level\nIF {timer:assist_delay}.Q THEN\n    AssistReq := TRUE;\n    {timer:assist_delay}.RESET := TRUE;\nEND_IF;\n\nIF Level <= StopLevel THEN\n    LeadReq := FALSE; // Pumped down, stop everything\n    AssistReq := FALSE;\nEND_IF;"
+    },
+    {
+      "title": "Duty alternation",
+      "description": [
+        "Duty swaps to the other pump each time a pump-down cycle ends to even out run hours."
+      ],
+      "scl": "IF LeadReqPrev AND NOT LeadReq THEN\n    DutyIsP2 := NOT DutyIsP2; // Cycle finished, swap duty\nEND_IF;\nLeadReqPrev := LeadReq;"
+    },
+    {
+      "title": "Pump selection",
+      "description": [
+        "Lead goes to the duty pump, or to the standby pump if duty is unavailable. Assist uses the other pump."
+      ],
+      "scl": "LeadIsP1 := (NOT DutyIsP2 AND Pump1Avail) OR (DutyIsP2 AND NOT Pump2Avail AND Pump1Avail);\nLeadIsP2 := (DutyIsP2 AND Pump2Avail) OR (NOT DutyIsP2 AND NOT Pump1Avail AND Pump2Avail);\n\nPump1Run := Pump1Avail AND ((LeadReq AND LeadIsP1) OR (AssistReq AND LeadIsP2));\nPump2Run := Pump2Avail AND ((LeadReq AND LeadIsP2) OR (AssistReq AND LeadIsP1));\n\nIF DutyIsP2 THEN\n    DutyPump := 2;\nELSE\n    DutyPump := 1;\nEND_IF;\nNoPumpAvail := LeadReq AND NOT Pump1Avail AND NOT Pump2Avail; // Pumping needed, nothing to run"
+    }
+  ],
+  "state_machine": {
+    "state_output": "State",
+    "status_output": "StatusString",
+    "safe_value": 0,
+    "states": [
+      {
+        "value": 9,
+        "name": "No pump available",
+        "condition": "NoPumpAvail",
+        "status": "Alarm: No pump available"
+      },
+      {
+        "value": 3,
+        "name": "Lead and assist",
+        "condition": "Pump1Run AND Pump2Run",
+        "status": "Running: Both pumps"
+      },
+      {
+        "value": 2,
+        "name": "Lead running",
+        "condition": "Pump1Run OR Pump2Run",
+        "status": "Running: Duty pump"
+      },
+      {
+        "value": 1,
+        "name": "Start delay",
+        "condition": "{timer:start_delay}.IN",
+        "status": "Level high: Start delay timing"
+      },
+      {
+        "value": 0,
+        "name": "Idle",
+        "condition": "ELSE",
+        "status": "Idle: Level normal"
+      }
+    ]
+  }
+}

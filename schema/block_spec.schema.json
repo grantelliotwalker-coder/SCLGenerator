@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "scl-block-spec-1.0",
   "title": "SCL function block spec v1.0",
-  "description": "Input format for sclgen.html. One spec = one FUNCTION_BLOCK.",
+  "description": "Input format for sclgen. One spec = one FUNCTION_BLOCK, plus its FDS and pseudo code.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -15,6 +15,34 @@
     "state_machine"
   ],
   "properties": {
+    "fds": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Functional Design Specification in Markdown, one array item per line"
+    },
+    "pseudo_code": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Pseudo code of the logic sections, one array item per line"
+    },
     "spec_version": {
       "const": "1.0"
     },

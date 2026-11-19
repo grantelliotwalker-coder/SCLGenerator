@@ -1,28 +1,34 @@
 # sclgen: offline SCL block generator
 
-Turns a JSON block spec into a Siemens SCL `FUNCTION_BLOCK` built on a standard reusable template.
+Turns a simple idea into a reviewed, working Siemens SCL `FUNCTION_BLOCK` plus its Functional Design
+Specification (FDS). Any AI chat is the middle man: it turns the idea into one JSON object in the exact
+format this tool reads (FDS, pseudo code and block design). The tool then builds the SCL from fixed
+template rules, so every block has the same structure, and checks it before download.
 It is one HTML page, `sclgen.html`: double-click it and it opens in any browser. No install,
-no Python, no internet, no AI. Nothing you type leaves the page.
+no Python, no internet needed for the page itself. Nothing you type leaves the page.
 
 ```
-describe block ──► Copy prompt ──► any AI chat ──► Paste & go ──► sclgen.html ──► Block.scl ──► SCL compiler
-                                     (online or local)              (offline)
+idea ──► Copy prompt ──► any AI chat ──► JSON ──► Paste & go ──► FDS (PDF) + pseudo code + Block.scl
+                         (online or local)          (offline, template rules)
 ```
 
 ## Use
 1. Open `sclgen.html`. Copy it to a site laptop or USB stick as it is; it is self-contained.
-2. **Describe your block** in plain words in step 1. "What to include" lists what helps: purpose,
-   signals in and out, settings, timing, faults, what the HMI should show.
+2. **Describe your idea** in plain words in step 1, or click an example idea. "What to include" lists
+   what helps: purpose, signals in and out, settings, timing, faults, what the HMI should show.
 3. **Copy prompt** and paste it into any AI chat (ChatGPT, Claude, Copilot, Gemini or a local model).
-   The prompt carries your description, `AI_INSTRUCTIONS.md`, the schema and an example spec, and asks
-   for the JSON spec only.
-4. Copy the AI's whole reply and click **Paste & go** (or paste into the box under it). The page pulls
-   the JSON out of the reply, checks it and builds the block. If there are problems, **Copy fix request**
-   gives you a message to paste back into the same chat; paste its new reply again.
+   The prompt carries your idea, `AI_INSTRUCTIONS.md`, an example with the SCL it produces, and the
+   schema, and asks for the JSON only.
+4. Copy the AI's reply (the copy button on its code block is easiest) and click **Paste & go**. The page
+   pulls the JSON out of the reply, checks it, builds the block and opens the FDS. If there are problems,
+   **Copy fix request** gives you a message to paste back into the same chat; paste its new reply again.
 5. **Download** saves `<BlockName>.scl` with CRLF line endings for SIMATIC Manager or TIA import.
+   **Save FDS as PDF** prints the FDS with appendices for the interface, timers, states and HMI messages
+   and standard behaviour (all generated from the block, so they always match it), the pseudo code and
+   the SCL listing.
 
-The spec editor below the steps still works as before: edit by hand, **Open spec…**, drop a `.json`
-file, **Load example…** or **Save spec**. The last spec and description are kept in the browser.
+No AI handy? The sample reply buttons in step 3 load a finished reply so you can try the whole flow.
+The **Advanced: JSON** tab holds the JSON for hand-editing, opening, saving and the examples.
 
 ## What the generator does for you (the rules)
 | Part | Source |
@@ -60,7 +66,7 @@ It does **not** compile SCL. Always compile the output in STEP 7 / PCS 7 / TIA a
 - `sclgen.html`: the generator (open it in a browser)
 - `schema/block_spec.schema.json`: JSON Schema for the spec (give to the AI; Ollama/llama.cpp can enforce it)
 - `AI_INSTRUCTIONS.md`: paste into the AI session with the manufacturer's info
-- `examples/`: your template as a spec, plus a pump run-feedback monitor
+- `examples/`: the original template as a spec, a pump run-feedback monitor and a two pump duty/standby controller (the last two with FDS and pseudo code)
 - `output/`: generated .scl from the examples
 
 - `tests/`: checks for the generator (needs Node.js, only for whoever changes `sclgen.html`)

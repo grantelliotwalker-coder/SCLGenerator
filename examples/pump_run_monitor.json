@@ -1,4 +1,58 @@
 {
+  "fds": [
+    "# 1 Purpose and scope",
+    "Monitors one pump's run feedback against its run command and raises latched faults when they disagree for too long. It does not start or stop the pump; the run command comes from elsewhere.",
+    "",
+    "# 2 Description of operation",
+    "When the pump is commanded to run, the run feedback is expected within StartCheckTime seconds. When the command is removed, the feedback is expected to drop within StopCheckTime seconds. If either does not happen, the matching fault latches and stays on until the operator resets it.",
+    "",
+    "# 3 Control logic",
+    "3.1 While Enable is FALSE the block is idle: faults are cleared, timers are stopped and StatusString shows \"Disabled\".",
+    "3.2 The start check timer runs while RunCmd is TRUE, RunFbk is FALSE and FailToStart is not already latched.",
+    "3.3 When the start check timer reaches StartCheckTime, FailToStart latches TRUE.",
+    "3.4 The stop check timer runs while RunCmd is FALSE, RunFbk is TRUE and FailToStop is not already latched.",
+    "3.5 When the stop check timer reaches StopCheckTime, FailToStop latches TRUE.",
+    "3.6 A rising edge on FaultReset clears FailToStart and FailToStop and restarts both checks.",
+    "3.7 Fault is TRUE whenever FailToStart or FailToStop is TRUE.",
+    "",
+    "# 4 Alarms and faults",
+    "| Fault | Raised when | Latches | Reset |",
+    "|---|---|---|---|",
+    "| FailToStart | Run commanded, no feedback for StartCheckTime s | Yes | Rising edge on FaultReset |",
+    "| FailToStop | Command removed, feedback still on after StopCheckTime s | Yes | Rising edge on FaultReset |",
+    "",
+    "# 5 Operator interface",
+    "The operator can adjust StartCheckTime and StopCheckTime. The HMI shows FailToStart, FailToStop, Fault, State and StatusString.",
+    "",
+    "# 6 Assumptions and open points",
+    "- ASSUMPTION: 10 s is long enough for the starter to pull in and drop out.",
+    "- A fault does not stop the pump itself; the calling logic must use Fault to interlock the run command if required.",
+    "",
+    "# 7 Test plan",
+    "| No. | Action | Expected result |",
+    "|---|---|---|",
+    "| 1 | Set RunCmd TRUE, give RunFbk within 10 s | No fault, State 2, \"Running\" |",
+    "| 2 | Set RunCmd TRUE, hold RunFbk FALSE for 10 s | FailToStart and Fault TRUE, State 9 |",
+    "| 3 | Remove RunCmd, hold RunFbk TRUE for 10 s | FailToStop and Fault TRUE, State 9 |",
+    "| 4 | Pulse FaultReset with feedback correct | Faults clear, State follows the pump |",
+    "| 5 | Hold FaultReset TRUE while the fault returns | Fault latches again; reset needs a new rising edge |",
+    "| 6 | Set Enable FALSE, then TRUE | \"Disabled\" shown, then block restarts with no faults |"
+  ],
+  "pseudo_code": [
+    "// Fault detection",
+    "start_check.IN = RunCmd AND NOT RunFbk AND NOT FailToStart",
+    "stop_check.IN = NOT RunCmd AND RunFbk AND NOT FailToStop",
+    "IF start_check done THEN FailToStart = TRUE",
+    "IF stop_check done THEN FailToStop = TRUE",
+    "",
+    "// Fault reset",
+    "IF FaultReset rising edge THEN",
+    "    FailToStart = FALSE",
+    "    FailToStop = FALSE",
+    "    reset start_check and stop_check",
+    "END IF",
+    "Fault = FailToStart OR FailToStop"
+  ],
   "spec_version": "1.0",
   "block": {
     "name": "PumpRunMon",
@@ -8,7 +62,10 @@
     "short_name": "PMPRUN",
     "version": "1.0",
     "know_how_protect": true,
-    "attributes": { "S7_m_c": "true", "S7_tasklist": "OB100" },
+    "attributes": {
+      "S7_m_c": "true",
+      "S7_tasklist": "OB100"
+    },
     "purpose": "Checks a pump's run feedback against its run command and latches fail to start / fail to stop faults.",
     "how_it_works": [
       "Fail to start: RunCmd is TRUE but RunFbk is not seen within StartCheckTime seconds.",
@@ -19,40 +76,114 @@
   "enable_input": "Enable",
   "sample_time_input": "SampleTime",
   "inputs": [
-    { "name": "Enable", "type": "BOOL", "initial": true, "attr_preset": "hmi",
-      "comment": "Block enable, must be TRUE for any monitoring to run" },
-    { "name": "RunCmd", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Run command sent to the pump starter" },
-    { "name": "RunFbk", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Run feedback from the starter auxiliary contact" },
-    { "name": "FaultReset", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Fault reset, rising edge clears latched faults" },
-    { "name": "StartCheckTime", "type": "REAL", "initial": 10.0, "attr_preset": "param",
-      "comment": "Seconds allowed for run feedback after the run command" },
-    { "name": "StopCheckTime", "type": "REAL", "initial": 10.0, "attr_preset": "param",
-      "comment": "Seconds allowed for run feedback to drop after the command is removed" },
-    { "name": "SampleTime", "type": "REAL", "attr_preset": "sampletime",
-      "comment": "Cycle time of the PLC in seconds, used for timer logic" }
+    {
+      "name": "Enable",
+      "type": "BOOL",
+      "initial": true,
+      "attr_preset": "hmi",
+      "comment": "Block enable, must be TRUE for any monitoring to run"
+    },
+    {
+      "name": "RunCmd",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Run command sent to the pump starter"
+    },
+    {
+      "name": "RunFbk",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Run feedback from the starter auxiliary contact"
+    },
+    {
+      "name": "FaultReset",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Fault reset, rising edge clears latched faults"
+    },
+    {
+      "name": "StartCheckTime",
+      "type": "REAL",
+      "initial": 10.0,
+      "attr_preset": "param",
+      "comment": "Seconds allowed for run feedback after the run command"
+    },
+    {
+      "name": "StopCheckTime",
+      "type": "REAL",
+      "initial": 10.0,
+      "attr_preset": "param",
+      "comment": "Seconds allowed for run feedback to drop after the command is removed"
+    },
+    {
+      "name": "SampleTime",
+      "type": "REAL",
+      "attr_preset": "sampletime",
+      "comment": "Cycle time of the PLC in seconds, used for timer logic"
+    }
   ],
   "outputs": [
-    { "name": "FailToStart", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Latched fault, no run feedback within StartCheckTime" },
-    { "name": "FailToStop", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Latched fault, run feedback still present after StopCheckTime" },
-    { "name": "Fault", "type": "BOOL", "initial": false, "attr_preset": "hmi",
-      "comment": "Common fault, TRUE if either fault is latched" },
-    { "name": "State", "type": "INT", "initial": 0, "attr_preset": "hmi",
-      "comment": "State, 0 = stopped, 1 = starting, 2 = running, 3 = stopping, 9 = fault" },
-    { "name": "StatusString", "type": "STRING[50]", "attr_preset": "hmi",
-      "comment": "Diagnostic status string for the operator screen" }
+    {
+      "name": "FailToStart",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Latched fault, no run feedback within StartCheckTime"
+    },
+    {
+      "name": "FailToStop",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Latched fault, run feedback still present after StopCheckTime"
+    },
+    {
+      "name": "Fault",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Common fault, TRUE if either fault is latched"
+    },
+    {
+      "name": "State",
+      "type": "INT",
+      "initial": 0,
+      "attr_preset": "hmi",
+      "comment": "State, 0 = stopped, 1 = starting, 2 = running, 3 = stopping, 9 = fault"
+    },
+    {
+      "name": "StatusString",
+      "type": "STRING[50]",
+      "attr_preset": "hmi",
+      "comment": "Diagnostic status string for the operator screen"
+    }
   ],
   "statics": [
-    { "name": "FaultResetPrev", "type": "BOOL", "initial": false,
-      "comment": "FaultReset value from the previous scan for rising edge detection" }
+    {
+      "name": "FaultResetPrev",
+      "type": "BOOL",
+      "initial": false,
+      "comment": "FaultReset value from the previous scan for rising edge detection"
+    }
   ],
   "timers": [
-    { "id": "start_check", "preset": { "from": "StartCheckTime" }, "comment": "Fail to start check" },
-    { "id": "stop_check",  "preset": { "from": "StopCheckTime" },  "comment": "Fail to stop check" }
+    {
+      "id": "start_check",
+      "preset": {
+        "from": "StartCheckTime"
+      },
+      "comment": "Fail to start check"
+    },
+    {
+      "id": "stop_check",
+      "preset": {
+        "from": "StopCheckTime"
+      },
+      "comment": "Fail to stop check"
+    }
   ],
   "logic_sections": [
     {
@@ -78,11 +209,36 @@
     "disabled_status": "Disabled",
     "unknown_status": "Error/Unknown",
     "states": [
-      { "value": 9, "name": "Fault", "condition": "Fault", "status": "Fault: Check pump and reset" },
-      { "value": 1, "name": "Starting", "condition": "{timer:start_check}.IN", "status": "Starting: Waiting for run feedback" },
-      { "value": 2, "name": "Running", "condition": "RunCmd AND RunFbk", "status": "Running" },
-      { "value": 3, "name": "Stopping", "condition": "{timer:stop_check}.IN", "status": "Stopping: Waiting for feedback to drop" },
-      { "value": 0, "name": "Stopped", "condition": "ELSE", "status": "Stopped" }
+      {
+        "value": 9,
+        "name": "Fault",
+        "condition": "Fault",
+        "status": "Fault: Check pump and reset"
+      },
+      {
+        "value": 1,
+        "name": "Starting",
+        "condition": "{timer:start_check}.IN",
+        "status": "Starting: Waiting for run feedback"
+      },
+      {
+        "value": 2,
+        "name": "Running",
+        "condition": "RunCmd AND RunFbk",
+        "status": "Running"
+      },
+      {
+        "value": 3,
+        "name": "Stopping",
+        "condition": "{timer:stop_check}.IN",
+        "status": "Stopping: Waiting for feedback to drop"
+      },
+      {
+        "value": 0,
+        "name": "Stopped",
+        "condition": "ELSE",
+        "status": "Stopped"
+      }
     ]
   }
 }
