@@ -3,8 +3,8 @@
   "block": {
     "name": "PumpRunMon",
     "title": "Pump run feedback monitor",
-    "author": "WALKER",
-    "family": "GCCC",
+    "author": "ENGINEER",
+    "family": "EXAMPLE",
     "short_name": "PMPRUN",
     "version": "1.0",
     "know_how_protect": true,

@@ -3,7 +3,7 @@
   "block": {
     "name": "BlockName",
     "title": "Block Title Here",
-    "family": "GCCC",
+    "family": "EXAMPLE",
     "short_name": "ShortNam",
     "version": "1.0",
     "know_how_protect": true,

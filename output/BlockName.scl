@@ -4,8 +4,8 @@ TITLE = 'Block Title Here'
 S7_m_c:='true';
 S7_tasklist:='OB100'
 }
-AUTHOR : 'WALKER'
-FAMILY : 'GCCC'
+AUTHOR : 'ENGINEER'
+FAMILY : 'EXAMPLE'
 NAME : 'ShortNam'
 VERSION : '1.0'
 KNOW_HOW_PROTECT

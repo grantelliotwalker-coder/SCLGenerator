@@ -95,7 +95,7 @@ body.dragging #drop{display:flex}
 </head>
 <body>
 <header>
-  <div class="brand"><b>sclgen</b><span>SCL function block generator · GCCC template</span></div>
+  <div class="brand"><b>sclgen</b><span>SCL function block generator</span></div>
   <span id="status" class="pill">…</span>
   <details class="help">
     <summary>How it works</summary>
@@ -116,7 +116,7 @@ body.dragging #drop{display:flex}
   <select class="btn" id="exampleSel" aria-label="Load an example">
     <option value="">Load example…</option>
     <option value="pump_run_monitor">Pump run feedback monitor</option>
-    <option value="template_threshold">GCCC template (threshold)</option>
+    <option value="template_threshold">Template (threshold)</option>
   </select>
   <button class="btn" id="saveBtn" type="button">Save spec</button>
   <button class="btn" id="aiBtn" type="button">Copy AI instructions</button>
@@ -157,7 +157,8 @@ You supply only the spec.
 ## Output rules
 1. Output **one JSON object only**, no prose, no markdown fences. It must validate against
    `block_spec.schema.json` (attached or below).
-2. `spec_version` is `"1.0"`. `block.author` is `"WALKER"`, `block.family` is `"GCCC"` unless told otherwise.
+2. `spec_version` is `"1.0"`. Use the `block.author` and `block.family` the user gives you. If none are given, use `"AUTHOR"` and
+   `"FAMILY"` as placeholders and say so in `block.how_it_works` (see "If information is missing").
    `short_name`, `author`, `family` max 8 characters. `version` like `"1.0"`.
 3. Names: letters, digits, underscore, max 24 characters, meaningful (e.g. `RunFbk`, not `BoolInput3`).
    No SCL reserved words. Names are not case-sensitive, so no two names may differ only by case.
@@ -202,8 +203,8 @@ See `examples/pump_run_monitor.json` for a complete correct spec.
 <script type="application/json" id="embed-schema/block_spec.schema.json">
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "gccc-scl-block-spec-1.0",
-  "title": "GCCC SCL function block spec v1.0",
+  "$id": "scl-block-spec-1.0",
+  "title": "SCL function block spec v1.0",
   "description": "Input format for sclgen.html. One spec = one FUNCTION_BLOCK.",
   "type": "object",
   "additionalProperties": false,
@@ -674,8 +675,8 @@ See `examples/pump_run_monitor.json` for a complete correct spec.
   "block": {
     "name": "PumpRunMon",
     "title": "Pump run feedback monitor",
-    "author": "WALKER",
-    "family": "GCCC",
+    "author": "ENGINEER",
+    "family": "EXAMPLE",
     "short_name": "PMPRUN",
     "version": "1.0",
     "know_how_protect": true,
@@ -764,8 +765,8 @@ See `examples/pump_run_monitor.json` for a complete correct spec.
   "block": {
     "name": "BlockName",
     "title": "Block Title Here",
-    "author": "WALKER",
-    "family": "GCCC",
+    "author": "ENGINEER",
+    "family": "EXAMPLE",
     "short_name": "ShortNam",
     "version": "1.0",
     "know_how_protect": true,

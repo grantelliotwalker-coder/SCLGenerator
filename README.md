@@ -1,6 +1,6 @@
-# sclgen: offline SCL block generator (GCCC template)
+# sclgen: offline SCL block generator
 
-Turns a JSON block spec into a Siemens SCL `FUNCTION_BLOCK` built on the standard GCCC template.
+Turns a JSON block spec into a Siemens SCL `FUNCTION_BLOCK` built on a standard reusable template.
 It is one HTML page, `sclgen.html`: double-click it and it opens in any browser. No install,
 no Python, no internet, no AI. Nothing you type leaves the page.
 
@@ -40,7 +40,7 @@ unused declarations.
 
 It does **not** compile SCL. Always compile the output in STEP 7 / PCS 7 / TIA and test it.
 
-## Fixes compared with the emailed template
+## Fixes compared with the original hand-written template
 1. `IF InternalReal1 > REAL := INT_TO_REAL(IntInput1) THEN` would not compile, and compared the
    process value against the *scan count*. Replaced with a separate `RealSetpoint1` input.
 2. The RESET clearing block sat **after** `END_FOR`, so it only ran once with whatever `tiIndex` was

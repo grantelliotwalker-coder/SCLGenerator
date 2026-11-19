@@ -9,7 +9,8 @@ You supply only the spec.
 ## Output rules
 1. Output **one JSON object only**, no prose, no markdown fences. It must validate against
    `block_spec.schema.json` (attached or below).
-2. `spec_version` is `"1.0"`. `block.author` is `"WALKER"`, `block.family` is `"GCCC"` unless told otherwise.
+2. `spec_version` is `"1.0"`. Use the `block.author` and `block.family` the user gives you. If none are given, use `"AUTHOR"` and
+   `"FAMILY"` as placeholders and say so in `block.how_it_works` (see "If information is missing").
    `short_name`, `author`, `family` max 8 characters. `version` like `"1.0"`.
 3. Names: letters, digits, underscore, max 24 characters, meaningful (e.g. `RunFbk`, not `BoolInput3`).
    No SCL reserved words. Names are not case-sensitive, so no two names may differ only by case.

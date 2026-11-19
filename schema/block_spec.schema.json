@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "gccc-scl-block-spec-1.0",
-  "title": "GCCC SCL function block spec v1.0",
+  "$id": "scl-block-spec-1.0",
+  "title": "SCL function block spec v1.0",
   "description": "Input format for sclgen.html. One spec = one FUNCTION_BLOCK.",
   "type": "object",
   "additionalProperties": false,
