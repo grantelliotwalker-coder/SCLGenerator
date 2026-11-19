@@ -1,4 +1,4 @@
-# Instructions for the AI session (paste this in, then attach the manufacturer's info)
+# Instructions for the AI session
 
 You are converting a description of a control function (manufacturer datasheet, I/O list,
 functional description or plain-English request) into a **JSON block spec** for our offline
@@ -7,8 +7,8 @@ declarations, enable/reset section, timer presets, state/status section and time
 You supply only the spec.
 
 ## Output rules
-1. Output **one JSON object only**, no prose, no markdown fences. It must validate against
-   `block_spec.schema.json` (attached or below).
+1. Output **one JSON object only**, in a single ```json code block, with no other text.
+   It must validate against `block_spec.schema.json` (attached or below).
 2. `spec_version` is `"1.0"`. Use the `block.author` and `block.family` the user gives you. If none are given, use `"AUTHOR"` and
    `"FAMILY"` as placeholders and say so in `block.how_it_works` (see "If information is missing").
    `short_name`, `author`, `family` max 8 characters. `version` like `"1.0"`.
@@ -50,4 +50,4 @@ assumption to `block.how_it_works` starting with `ASSUMPTION:` so the engineer s
 block header.
 
 ## Example
-See `examples/pump_run_monitor.json` for a complete correct spec.
+See the example spec (`examples/pump_run_monitor.json`) for a complete correct spec.

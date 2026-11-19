@@ -59,5 +59,22 @@ for (const f of fs.readdirSync(casesDir).filter((x) => x.endsWith('.json')).sort
   ok(got === want, `case ${f}`, `--- expected\n${want}--- got\n${got}`);
 }
 
+// 4. pulling the spec out of a pasted AI reply
+{
+  const ex = fs.readFileSync(path.join(ROOT, 'examples', 'pump_run_monitor.json'), 'utf8');
+  const want = JSON.stringify(JSON.parse(ex), null, 2) + '\n';
+  const replies = {
+    'plain JSON': ex,
+    'json fence with prose': 'Here is your spec:\n\n```json\n' + ex + '\n```\n\nLet me know if you need changes.',
+    'bare fence': '```\n' + ex + '```',
+    'prose, no fence': 'Sure! ' + ex.trim() + ' Hope this helps {not json}.',
+    'braces inside strings': 'Spec: ' + ex.trim(),
+  };
+  for (const [name, text] of Object.entries(replies)) ok(engine.extractSpec(text) === want, `extract: ${name}`, engine.extractSpec(text));
+  ok(engine.extractSpec('Sorry, what level range is the sensor?') === null, 'extract: no JSON gives null');
+  const broken = engine.extractSpec('```json\n{"spec_version": "1.0",}\n```');
+  ok(broken !== null && engine.run(broken).jsonError, 'extract: broken JSON still reaches the checker');
+}
+
 console.log(`${passed} passed, ${failed} failed`);
 process.exitCode = failed ? 1 : 0;

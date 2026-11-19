@@ -5,20 +5,24 @@ It is one HTML page, `sclgen.html`: double-click it and it opens in any browser.
 no Python, no internet, no AI. Nothing you type leaves the page.
 
 ```
-manufacturer info ──► any AI (online or local) ──► spec.json ──► sclgen.html ──► Block.scl ──► SCL compiler
-                      using "Copy AI instructions"   (review)     (offline)
+describe block ──► Copy prompt ──► any AI chat ──► Paste & go ──► sclgen.html ──► Block.scl ──► SCL compiler
+                                     (online or local)              (offline)
 ```
 
 ## Use
 1. Open `sclgen.html`. Copy it to a site laptop or USB stick as it is; it is self-contained.
-2. **Copy AI instructions** puts `AI_INSTRUCTIONS.md` and the schema on the clipboard. Paste them into
-   any AI chat with the manufacturer's info. The AI writes only the JSON spec.
-3. Paste the spec into the left pane, or **Open spec…**, or drop a `.json` file on the page.
-   **Load example…** has the two specs in `examples/`.
-4. The page checks the spec as you type. Errors stop the build. Warnings (unused variables etc.)
-   still build. Click a problem to jump to it in the spec.
+2. **Describe your block** in plain words in step 1. "What to include" lists what helps: purpose,
+   signals in and out, settings, timing, faults, what the HMI should show.
+3. **Copy prompt** and paste it into any AI chat (ChatGPT, Claude, Copilot, Gemini or a local model).
+   The prompt carries your description, `AI_INSTRUCTIONS.md`, the schema and an example spec, and asks
+   for the JSON spec only.
+4. Copy the AI's whole reply and click **Paste & go** (or paste into the box under it). The page pulls
+   the JSON out of the reply, checks it and builds the block. If there are problems, **Copy fix request**
+   gives you a message to paste back into the same chat; paste its new reply again.
 5. **Download** saves `<BlockName>.scl` with CRLF line endings for SIMATIC Manager or TIA import.
-   **Save spec** saves the JSON. The last spec is also kept in the browser between visits.
+
+The spec editor below the steps still works as before: edit by hand, **Open spec…**, drop a `.json`
+file, **Load example…** or **Save spec**. The last spec and description are kept in the browser.
 
 ## What the generator does for you (the rules)
 | Part | Source |

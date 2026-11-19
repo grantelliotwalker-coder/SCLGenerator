@@ -24,8 +24,7 @@
   }
 }
 *{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);display:flex;flex-direction:column}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);display:flex;flex-direction:column;min-height:100vh}
 button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
@@ -43,7 +42,7 @@ header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 select.btn{padding-right:8px}
-main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 16px;min-height:0}
+main{height:max(460px,70vh);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 16px;min-height:0}
 .pane{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:8px;min-height:0;overflow:hidden}
 .pane-head{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);min-height:38px}
 .pane-head strong{color:var(--ink);font-weight:600}
@@ -84,9 +83,32 @@ details.help[open] .help-body{display:block}
 body.dragging #drop{display:flex}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 #toast.show{opacity:.95}
+/* guided steps */
+.steps{display:grid;grid-template-columns:1.35fr 1fr 1.15fr;gap:12px;padding:14px 16px 4px}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.step h2{margin:0;font-size:16px;display:flex;align-items:center;gap:10px}
+.step h2 .num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:14px;flex:none}
+.step p{margin:0;color:var(--muted);font-size:13px}
+.step textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--soft);color:var(--ink);font:13px/1.45 var(--sans);resize:vertical}
+#desc{min-height:118px;flex:1}
+#pasteBox{min-height:54px;font-family:var(--mono);font-size:12px}
+.btn.big{justify-content:center;padding:11px 16px;font-size:15px;border-radius:8px}
+details.tips{font-size:13px}
+details.tips summary{cursor:pointer;color:var(--accent);font-weight:600}
+details.tips ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}
+details.tips li{margin:2px 0}
+details.tips b{color:var(--ink);font-weight:600}
+#result{display:none;border-radius:8px;padding:10px 12px;font-size:13px}
+#result.ok,#result.err{display:flex;flex-direction:column;gap:8px}
+#result.ok{background:var(--ok-bg);color:var(--ok)}
+#result.err{background:var(--err-bg);color:var(--err)}
+#result strong{font-size:14px}
+#result ul{margin:0;padding-left:18px;color:var(--ink);max-height:120px;overflow:auto}
+#result .row{display:flex;gap:8px;flex-wrap:wrap}
+.section-label{padding:14px 16px 0;color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+@media (max-width:1000px){.steps{grid-template-columns:1fr}}
 @media (max-width:820px){
-  html,body{height:auto}
-  main{flex:none;grid-template-columns:1fr}
+  main{height:auto;grid-template-columns:1fr}
   .pane{height:62vh}
   .brand span{display:none}
   .toolbar .grow{display:none}
@@ -101,15 +123,50 @@ body.dragging #drop{display:flex}
     <summary>How it works</summary>
     <div class="help-body">
       <ol>
-        <li>Click <b>Copy AI instructions</b> and paste them into any AI chat, online or local, together with the manufacturer's info. The AI writes only a JSON <b>spec</b>, not the SCL.</li>
-        <li>Paste the spec into the left pane, or open or drop a <code>.json</code> file. The page checks it as you type. Click a problem to jump to it.</li>
-        <li>When there are no errors, review the SCL and click <b>Download .scl</b>. The file uses CRLF line endings for SIMATIC Manager or TIA import.</li>
+        <li><b>Describe your block</b> in plain words, and paste in any manufacturer's info you have.</li>
+        <li><b>Copy prompt</b> and paste it into any AI chat, online or local. The AI writes only a JSON <b>spec</b>; this page writes the SCL from it, using fixed template rules.</li>
+        <li>Copy the AI's whole reply and click <b>Paste &amp; go</b>. If the spec has problems, <b>Copy fix request</b>, paste it back into the same chat, and paste the new reply.</li>
+        <li>Review the SCL below and download it. The file uses CRLF line endings for SIMATIC Manager or TIA import. You can also edit the spec by hand, or open or drop a <code>.json</code> file.</li>
         <li>Compile the block in STEP 7, PCS 7 or TIA and test it. This page does not compile SCL.</li>
       </ol>
       <p style="margin:6px 0 0;color:var(--muted)">Everything runs in this page. Nothing is uploaded and it works with no internet connection. Your last spec is kept in this browser.</p>
     </div>
   </details>
 </header>
+<section class="steps" aria-label="Make a block in three steps">
+  <div class="step">
+    <h2><span class="num">1</span>Describe your block</h2>
+    <textarea id="desc" spellcheck="true" aria-label="Describe your block" placeholder="e.g. Two pump duty/standby controller on wet well level (0-100 %). Start the duty pump at 60 %, stop at 20 %, bring in the second pump at 80 %. Alternate duty each cycle. If the duty pump is not available, run the other one. Show the state on the HMI."></textarea>
+    <details class="tips">
+      <summary>What to include</summary>
+      <ul>
+        <li><b>Purpose:</b> what the block controls or monitors, in one sentence.</li>
+        <li><b>Signals in:</b> commands, feedbacks, measurements, with units and ranges.</li>
+        <li><b>Signals out:</b> what it switches or reports.</li>
+        <li><b>Settings:</b> setpoints, limits, start/stop levels the operator can change.</li>
+        <li><b>Timing:</b> delays, confirm times, run-on times.</li>
+        <li><b>Faults:</b> what counts as a fault, whether it latches, how it is reset.</li>
+        <li><b>Operator view:</b> the states and messages the HMI should show.</li>
+        <li><b>Header:</b> author and family names for the block, if you use them.</li>
+      </ul>
+      <p style="margin:6px 0 0">Anything you leave out, the AI fills with a sensible default and lists as an <b>ASSUMPTION</b> in the block header.</p>
+    </details>
+  </div>
+  <div class="step">
+    <h2><span class="num">2</span>Copy the prompt</h2>
+    <p>Then paste it into any AI chat: ChatGPT, Claude, Copilot, Gemini, or a model on your own PC.</p>
+    <button class="btn primary big" id="promptBtn" type="button">Copy prompt</button>
+    <p>The prompt contains your description, the rules, the spec format and an example. It tells the AI to reply with the JSON only.</p>
+  </div>
+  <div class="step">
+    <h2><span class="num">3</span>Paste the AI's reply</h2>
+    <p>Copy the AI's whole answer. Extra text around the JSON is fine.</p>
+    <button class="btn primary big" id="pasteBtn" type="button">Paste &amp; go</button>
+    <textarea id="pasteBox" spellcheck="false" aria-label="Paste the AI reply here" placeholder="…or paste it here with Ctrl+V"></textarea>
+    <div id="result" role="status" aria-live="polite"></div>
+  </div>
+</section>
+<div class="section-label">Spec and generated SCL</div>
 <div class="toolbar">
   <button class="btn" id="openBtn" type="button">Open spec…</button>
   <input type="file" id="fileInput" accept=".json,application/json" hidden>
@@ -119,7 +176,7 @@ body.dragging #drop{display:flex}
     <option value="template_threshold">Template (threshold)</option>
   </select>
   <button class="btn" id="saveBtn" type="button">Save spec</button>
-  <button class="btn" id="aiBtn" type="button">Copy AI instructions</button>
+  <button class="btn" id="aiBtn" type="button">Copy instructions only</button>
   <span class="grow"></span>
   <button class="btn" id="copyBtn" type="button">Copy SCL</button>
   <button class="btn primary" id="dlBtn" type="button">Download .scl</button>
@@ -146,7 +203,7 @@ body.dragging #drop{display:flex}
 
 <!-- Embedded copies of repo files. Keep in sync with: node tests/test.js --fix -->
 <script type="text/plain" id="embed-AI_INSTRUCTIONS.md">
-# Instructions for the AI session (paste this in, then attach the manufacturer's info)
+# Instructions for the AI session
 
 You are converting a description of a control function (manufacturer datasheet, I/O list,
 functional description or plain-English request) into a **JSON block spec** for our offline
@@ -155,8 +212,8 @@ declarations, enable/reset section, timer presets, state/status section and time
 You supply only the spec.
 
 ## Output rules
-1. Output **one JSON object only**, no prose, no markdown fences. It must validate against
-   `block_spec.schema.json` (attached or below).
+1. Output **one JSON object only**, in a single ```json code block, with no other text.
+   It must validate against `block_spec.schema.json` (attached or below).
 2. `spec_version` is `"1.0"`. Use the `block.author` and `block.family` the user gives you. If none are given, use `"AUTHOR"` and
    `"FAMILY"` as placeholders and say so in `block.how_it_works` (see "If information is missing").
    `short_name`, `author`, `family` max 8 characters. `version` like `"1.0"`.
@@ -198,7 +255,7 @@ assumption to `block.how_it_works` starting with `ASSUMPTION:` so the engineer s
 block header.
 
 ## Example
-See `examples/pump_run_monitor.json` for a complete correct spec.
+See the example spec (`examples/pump_run_monitor.json`) for a complete correct spec.
 </script>
 <script type="application/json" id="embed-schema/block_spec.schema.json">
 {
@@ -1882,7 +1939,44 @@ const SCLGEN = (() => {
     return null;
   }
 
-  return { run, locate, version: GENERATOR_VERSION };
+  // Pull the JSON spec out of a pasted AI reply: plain JSON, a ```json fenced block,
+  // or the first balanced {...} in surrounding prose. Returns the JSON text (re-indented
+  // when it parses) or null when there is no object to find.
+  function extractSpec(reply) {
+    if (typeof reply !== 'string') return null;
+    const text = reply.replace(/^﻿/, '').trim();
+    if (!text) return null;
+    const tidy = (s) => {
+      try { const v = JSON.parse(s); return v && typeof v === 'object' && !Array.isArray(v) ? JSON.stringify(v, null, 2) + '\n' : null; }
+      catch (e) { return null; }
+    };
+    const whole = tidy(text);
+    if (whole) return whole;
+    const candidates = [];
+    const fence = /```[A-Za-z0-9_-]*[ \t]*\r?\n([\s\S]*?)```/g;
+    let m;
+    while ((m = fence.exec(text))) if (m[1].trim().startsWith('{')) candidates.push(m[1].trim());
+    // balanced braces, ignoring braces inside JSON strings
+    for (let start = text.indexOf('{'); start !== -1; start = text.indexOf('{', start + 1)) {
+      let depth = 0, inStr = false, escp = false, end = -1;
+      for (let i = start; i < text.length; i++) {
+        const c = text[i];
+        if (inStr) { if (escp) escp = false; else if (c === '\\') escp = true; else if (c === '"') inStr = false; continue; }
+        if (c === '"') inStr = true;
+        else if (c === '{') depth++;
+        else if (c === '}' && --depth === 0) { end = i; break; }
+      }
+      if (end === -1) { candidates.push(text.slice(start)); break; }
+      candidates.push(text.slice(start, end + 1));
+      break;
+    }
+    for (const c of candidates) { const t = tidy(c); if (t) return t; }
+    // nothing parses: hand back the most likely candidate so its JSON error is shown
+    candidates.sort((a, b) => b.length - a.length);
+    return candidates.length ? candidates[0] + '\n' : null;
+  }
+
+  return { run, locate, extractSpec, version: GENERATOR_VERSION };
 })();
 /* ENGINE END */
 if (typeof module !== 'undefined') module.exports = SCLGEN;
@@ -1906,7 +2000,7 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
 
   // ---- storage (may be unavailable) ----
   function load() { try { return JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { return null; } }
-  function save() { try { localStorage.setItem(STORE, JSON.stringify({ text: ta.value, fileName })); } catch (e) { /* ignore */ } }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify({ text: ta.value, fileName, desc: $('desc').value })); } catch (e) { /* ignore */ } }
 
   // ---- helpers ----
   let toastTimer;
@@ -2036,7 +2130,111 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
 
     if (!r.code) showTab('problems');
     else showTab(userTab || 'scl');
+    current.probs = probs;
+    if (resultOn) renderResult();
   }
+
+  // ---- guided steps: prompt, paste & go, fix request ----
+  let resultOn = false;
+  const resultEl = $('result');
+  const fence = (lang, body) => '```' + lang + '\n' + body.replace(/\s+$/, '') + '\n```';
+  function probLine(p) {
+    const tag = p.sev === 'WARNING' ? 'WARNING' : 'ERROR';
+    return `${tag} ${p.where}: ${p.msg}`;
+  }
+  function renderResult() {
+    const r = current;
+    resultEl.textContent = '';
+    if (!r) return;
+    if (r.code) {
+      resultEl.className = 'ok';
+      const nWarn = r.warnings.length;
+      resultEl.innerHTML = `<strong>✓ ${esc(r.fileName)} is ready</strong>` +
+        `<span style="color:var(--ink)">${r.lineCount} lines of SCL, shown below.` +
+        (nWarn ? ` ${plural(nWarn, 'warning')}: worth a look, but the block was built.` : '') +
+        ` Compile and test it before use.</span>` +
+        `<div class="row"><button class="btn primary" type="button" data-act="dl">Download ${esc(r.fileName)}</button>` +
+        (nWarn ? '<button class="btn" type="button" data-act="fix">Copy fix request</button>' : '') + '</div>';
+    } else {
+      resultEl.className = 'err';
+      const probs = (r.probs || []).filter((p) => p.sev !== 'WARNING');
+      const items = probs.slice(0, 8).map((p) => `<li>${esc(p.msg)} <span class="where">(${esc(p.where)})</span></li>`).join('') +
+        (probs.length > 8 ? `<li>…and ${probs.length - 8} more</li>` : '');
+      resultEl.innerHTML = `<strong>The AI's spec has ${plural(probs.length || 1, 'problem')}</strong>` +
+        (items ? `<ul>${items}</ul>` : '') +
+        '<span style="color:var(--ink)">Click <b>Copy fix request</b>, paste it into the same AI chat, then copy its new reply and click <b>Paste &amp; go</b> again.</span>' +
+        '<div class="row"><button class="btn primary" type="button" data-act="fix">Copy fix request</button></div>';
+    }
+  }
+  resultEl.addEventListener('click', async (e) => {
+    const act = e.target.closest('button') && e.target.closest('button').dataset.act;
+    if (act === 'dl') $('dlBtn').click();
+    if (act === 'fix') {
+      const probs = (current && current.probs) || [];
+      const errs = probs.filter((p) => p.sev !== 'WARNING'), warns = probs.filter((p) => p.sev === 'WARNING');
+      let msg = errs.length
+        ? 'The SCL generator rejected your JSON spec. Fix these problems and reply with the complete corrected spec only, in one ```json code block:\n\n' + errs.map(probLine).join('\n')
+        : 'The SCL generator accepted your JSON spec but reported these warnings. Fix them if they are real problems and reply with the complete corrected spec only, in one ```json code block:\n\n' + warns.map(probLine).join('\n');
+      if (errs.length && warns.length) msg += '\n\nAlso check these warnings:\n' + warns.map(probLine).join('\n');
+      toast((await copy(msg)) ? 'Fix request copied: paste it into the AI chat' : 'Copy failed: your browser blocked it');
+    }
+  });
+
+  function goWith(text) {
+    const spec = SCLGEN.extractSpec(text);
+    resultOn = true;
+    if (!spec) {
+      resultEl.className = 'err';
+      resultEl.innerHTML = '<strong>No JSON spec found in that text</strong><span style="color:var(--ink)">Copy the AI\'s whole reply, including the part in the code block, and try again. If the AI asked you questions instead, answer them in the chat first.</span>';
+      return;
+    }
+    setText(spec, 'untitled.json');
+    if (current && current.code) { fileName = current.fileName.replace(/\.scl$/, '.json'); $('fname').textContent = fileName; save(); }
+    $('pasteBox').value = '';
+  }
+
+  $('promptBtn').onclick = async () => {
+    const desc = $('desc').value.trim();
+    if (!desc) { $('desc').focus(); toast('Describe your block first (step 1)'); return; }
+    const text = [
+      '# Task: write a JSON block spec for an SCL function block',
+      '',
+      'I am using an offline generator that turns a JSON spec into a Siemens SCL FUNCTION_BLOCK built on fixed template rules. Your job is to write that JSON spec for the block described at the end. Follow these instructions exactly.',
+      '',
+      embed('AI_INSTRUCTIONS.md').replace(/\s+$/, ''),
+      '',
+      '## Schema: the spec must validate against this',
+      '',
+      fence('json', embed('schema/block_spec.schema.json')),
+      '',
+      '## Example of a complete, correct spec (a different block, for reference only)',
+      '',
+      fence('json', embed('examples/pump_run_monitor.json')),
+      '',
+      '## The block I need',
+      '',
+      desc,
+      '',
+      '## Reply format',
+      '',
+      'Reply with the complete JSON spec only, in one ```json code block, with no other text. Do not ask questions: where information is missing, choose a sensible default and record it in block.how_it_works starting with "ASSUMPTION:".',
+      '',
+    ].join('\n');
+    toast((await copy(text)) ? 'Prompt copied: paste it into your AI chat' : 'Copy failed: your browser blocked it');
+  };
+  $('pasteBtn').onclick = async () => {
+    let text = null;
+    try { text = await navigator.clipboard.readText(); } catch (e) { text = null; }
+    if (text && text.trim()) { goWith(text); return; }
+    $('pasteBox').focus();
+    toast('Press Ctrl+V (or ⌘V) to paste the reply here');
+  };
+  $('pasteBox').addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (text && text.trim()) { e.preventDefault(); goWith(text); }
+  });
+  $('pasteBox').addEventListener('input', (e) => { if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop') goWith($('pasteBox').value); });
+  $('desc').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(save, 300); });
 
   let timer;
   ta.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { check(); save(); }, 200); });
@@ -2097,6 +2295,7 @@ if (typeof module !== 'undefined') module.exports = SCLGEN;
 
   // ---- start ----
   const saved = load();
+  if (saved && typeof saved.desc === 'string') $('desc').value = saved.desc;
   if (saved && typeof saved.text === 'string' && saved.text.trim()) setText(saved.text, saved.fileName || 'untitled.json');
   else setText(examples.pump_run_monitor(), 'pump_run_monitor.json');
 })();
