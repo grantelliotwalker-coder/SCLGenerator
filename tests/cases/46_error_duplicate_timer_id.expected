@@ -1,0 +1,6 @@
+ERROR   inputs.BoolInput1: unsupported type 'BOFOROL'
+ERROR   inputs.OffDelayTime: attr_preset must be one of ['none', 'hmi', 'param', 'sampletime']
+ERROR   enable_input: 'BoolInput1' must be a BOOL in inputs
+ERROR   timers.off_delay: duplicate timer id
+
+4 error(s), 0 warning(s). Nothing written.

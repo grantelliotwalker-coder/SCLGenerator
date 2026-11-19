@@ -1,0 +1,5 @@
+ERROR   inputs.IntInput1.initial: INT needs a whole number
+ERROR   timers.on_delay: preset must be {"seconds": 5.0} or {"from": "InputName"}
+ERROR   logic_sections[2]: needs 'title' and 'scl' text
+
+3 error(s), 0 warning(s). Nothing written.

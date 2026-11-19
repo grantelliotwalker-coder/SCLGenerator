@@ -1,0 +1,4 @@
+ERROR   timers.stop_check: preset source '{'from': 'RunCmd'}' is not declared
+ERROR   state_machine.states[2]: name is required
+
+2 error(s), 0 warning(s). Nothing written.

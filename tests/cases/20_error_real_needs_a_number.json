@@ -1,0 +1,197 @@
+{
+  "spec_version": "1.0",
+  "block": {
+    "name": "BlockName",
+    "title": "Block Title Here",
+    "family": "GCCC",
+    "short_name": "ShortNam",
+    "version": "1.0",
+    "know_how_protect": true,
+    "attributes": {
+      "S7_m_c": "true",
+      "S7_tasklist": "OB100"
+    },
+    "purpose": "Reusable template block with working compilable logic.",
+    "how_it_works": [
+      "BoolInput1 enables the block. When enabled, RealInput1 (clamped 0-100) is compared to RealSetpoint1.",
+      "If RealInput1 stays above RealSetpoint1 for IntInput1 consecutive scans, the on delay timer starts",
+      "and BoolOutput1 turns on when it elapses. When the condition is lost the off delay turns it off.",
+      "When BoolInput1 is FALSE the block resets cleanly.",
+      "StatusString always reflects the current operating condition for diagnostics."
+    ]
+  },
+  "enable_input": "BoolInput1",
+  "sample_time_input": "SampleTime",
+  "inputs": [
+    {
+      "name": "BoolInput1",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Block enable, must be TRUE for any logic to run"
+    },
+    {
+      "name": "RealInput1",
+      "type": "REAL",
+      "initial": 0.0,
+      "attr_preset": "param"
+    },
+    {
+      "name": "RealSetpoint1",
+      "type": "REAL",
+      "initial": 50.0,
+      "attr_preset": "param",
+      "comment": "Setpoint RealInput1 must exceed (engineering units, 0-100)"
+    },
+    {
+      "name": "IntInput1",
+      "type": "INT",
+      "initial": 10,
+      "attr_preset": "param",
+      "comment": "Number of consecutive scans RealInput1 must exceed RealSetpoint1 before timing starts"
+    },
+    {
+      "name": "OnDelayTime",
+      "type": "REAL",
+      "initial": 5.0,
+      "attr_preset": "param",
+      "comment": "On delay in seconds before BoolOutput1 turns on"
+    },
+    {
+      "name": "OffDelayTime",
+      "type": "REAL",
+      "initial": 3.0,
+      "attr_preset": "param",
+      "comment": "Off delay in seconds before BoolOutput1 turns off"
+    },
+    {
+      "name": "SampleTime",
+      "type": "REAL",
+      "attr_preset": "sampletime",
+      "comment": "Cycle time of the PLC in seconds, used for timer logic"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "BoolOutput1",
+      "type": "BOOL",
+      "initial": false,
+      "attr_preset": "hmi",
+      "comment": "Output active flag, TRUE when condition confirmed for timer duration"
+    },
+    {
+      "name": "RealOutput1",
+      "type": "REAL",
+      "initial": 0.0,
+      "attr_preset": "hmi",
+      "comment": "Scaled output value, reflects RealInput1 when active, zero when inactive"
+    },
+    {
+      "name": "IntOutput1",
+      "type": "INT",
+      "initial": 0,
+      "attr_preset": "hmi",
+      "comment": "State, 0 = idle, 1 = on delay timing, 2 = active with off delay timing, 3 = active"
+    },
+    {
+      "name": "StatusString",
+      "type": "STRING[50]",
+      "attr_preset": "hmi",
+      "comment": "Diagnostic status string indicating current operating condition"
+    }
+  ],
+  "statics": [
+    {
+      "name": "InternalReal1",
+      "type": "REAL",
+      "initial": [
+        "a",
+        "",
+        "b"
+      ],
+      "comment": "RealInput1 clamped to 0-100 for internal calculations"
+    },
+    {
+      "name": "InternalInt1",
+      "type": "INT",
+      "initial": 0,
+      "comment": "Scan counter, consecutive scans RealInput1 has exceeded the setpoint"
+    }
+  ],
+  "timers": [
+    {
+      "id": "on_delay",
+      "preset": {
+        "from": "OnDelayTime"
+      },
+      "comment": "On delay before output turns on"
+    },
+    {
+      "id": "off_delay",
+      "preset": {
+        "from": "OffDelayTime"
+      },
+      "comment": "Off delay before output turns off"
+    }
+  ],
+  "logic_sections": [
+    {
+      "title": "Input conditioning",
+      "description": [
+        "InternalReal1 clamps RealInput1 to a 0-100 range for safe use downstream.",
+        "InternalInt1 counts consecutive scans where it exceeds RealSetpoint1."
+      ],
+      "scl": "InternalReal1 := LIMIT(MN:=0.0, IN:=RealInput1, MX:=100.0); // Clamp RealInput1 to 0-100 range\n\nIF InternalReal1 > RealSetpoint1 THEN\n    IF InternalInt1 < 32767 THEN\n        InternalInt1 := InternalInt1 + 1; // Count consecutive scans above setpoint, capped so it cannot overflow\n    END_IF;\nELSE\n    InternalInt1 := 0; // Reset the moment RealInput1 drops back to or below setpoint\nEND_IF;"
+    },
+    {
+      "title": "Timer control logic",
+      "description": [
+        "The on delay starts once the scan counter confirms the condition for IntInput1 scans.",
+        "This double confirmation prevents false triggers from signal spikes.",
+        "The off delay starts when the output is active but the condition is lost."
+      ],
+      "scl": "IF InternalInt1 >= IntInput1 AND NOT BoolOutput1 THEN\n    {timer:on_delay}.IN := TRUE; // Condition confirmed for enough scans, start on delay\n    {timer:off_delay}.IN := FALSE;\nELSIF BoolOutput1 AND InternalInt1 = 0 THEN\n    {timer:off_delay}.IN := TRUE; // Output on but condition lost, start off delay\n    {timer:on_delay}.IN := FALSE;\nELSE\n    {timer:on_delay}.IN := FALSE; // No transition pending, stop both timers\n    {timer:off_delay}.IN := FALSE;\nEND_IF;"
+    },
+    {
+      "title": "Output logic",
+      "description": [
+        "On delay elapsing turns the output on, off delay elapsing turns it off.",
+        "RealOutput1 tracks the clamped process value while active and clears when inactive."
+      ],
+      "scl": "IF {timer:on_delay}.Q THEN\n    BoolOutput1 := TRUE; // On delay elapsed, condition confirmed\n    {timer:on_delay}.IN := FALSE;\n    {timer:on_delay}.RESET := TRUE; // Ready for next cycle\nEND_IF;\n\nIF {timer:off_delay}.Q THEN\n    BoolOutput1 := FALSE; // Off delay elapsed, condition lost\n    {timer:off_delay}.IN := FALSE;\n    {timer:off_delay}.RESET := TRUE; // Ready for next cycle\nEND_IF;\n\nIF BoolOutput1 THEN\n    RealOutput1 := InternalReal1; // Pass scaled value while active\nELSE\n    RealOutput1 := 0.0; // Clear when inactive\nEND_IF;"
+    }
+  ],
+  "state_machine": {
+    "state_output": "IntOutput1",
+    "status_output": "StatusString",
+    "safe_value": 0,
+    "disabled_status": "Disabled",
+    "unknown_status": "Error/Unknown",
+    "states": [
+      {
+        "value": 1,
+        "name": "On delay timing",
+        "condition": "{timer:on_delay}.IN",
+        "status": "Timing: On delay active"
+      },
+      {
+        "value": 2,
+        "name": "Active, off delay timing",
+        "condition": "BoolOutput1 AND {timer:off_delay}.IN",
+        "status": "Active: Off delay counting"
+      },
+      {
+        "value": 3,
+        "name": "Active",
+        "condition": "BoolOutput1",
+        "status": "Active: Output on"
+      },
+      {
+        "value": 0,
+        "name": "Idle",
+        "condition": "ELSE",
+        "status": "Idle: Waiting for condition"
+      }
+    ]
+  }
+}

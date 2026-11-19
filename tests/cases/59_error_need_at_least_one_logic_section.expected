@@ -1,0 +1,4 @@
+ERROR   outputs.IntOutput1.initial: INT needs a whole number
+ERROR   logic_sections: need at least one logic section
+
+2 error(s), 0 warning(s). Nothing written.

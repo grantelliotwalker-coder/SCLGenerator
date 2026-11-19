@@ -1,0 +1,4 @@
+ERROR   spec_version: must be one of ['1.0'], got 'abc'
+ERROR   timers[1]: id must be a simple identifier, e.g. on_delay
+
+2 error(s), 0 warning(s). Nothing written.

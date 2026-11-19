@@ -1,0 +1,4 @@
+ERROR   block.name: must be letters, digits, underscore and not start with a digit
+ERROR   inputs.RealSetpoint1: attr_preset must be one of ['none', 'hmi', 'param', 'sampletime']
+
+2 error(s), 0 warning(s). Nothing written.

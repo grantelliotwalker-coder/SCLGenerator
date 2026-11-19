@@ -1,0 +1,4 @@
+ERROR   state_machine.states[3]: condition 'ELSE' is only allowed on the last state (and not the only one)
+ERROR   state_machine.states[4]: duplicate state value 0
+
+2 error(s), 0 warning(s). Nothing written.

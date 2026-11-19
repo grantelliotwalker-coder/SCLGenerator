@@ -1,0 +1,2 @@
+WARNING inputs.IntInput1: declared but never used in logic
+OK: spec valid, 1 warning(s).

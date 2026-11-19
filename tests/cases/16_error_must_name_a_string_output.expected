@@ -1,0 +1,7 @@
+ERROR   outputs[0]: must be an object
+ERROR   outputs[1]: must be an object
+ERROR   outputs[2]: must be an object
+ERROR   state_machine.status_output: must name a STRING output
+ERROR   state_machine.state_output: must name an INT output
+
+5 error(s), 0 warning(s). Nothing written.

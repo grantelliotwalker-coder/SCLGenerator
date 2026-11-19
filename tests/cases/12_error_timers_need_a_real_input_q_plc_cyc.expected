@@ -1,0 +1,6 @@
+ERROR   inputs[6]: invalid name 'None'
+ERROR   sample_time_input: timers need a REAL input 'SampleTime' (PLC cycle time in seconds)
+ERROR   logic_sections[0]: title required
+WARNING inputs.RunFbk: no comment; every variable should say what it is for
+
+3 error(s), 1 warning(s). Nothing written.

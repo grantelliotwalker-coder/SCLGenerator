@@ -1,0 +1,4 @@
+ERROR   outputs.StatusString: duplicate name (SCL is not case-sensitive; clashes with inputs.StatusString)
+ERROR   state_machine.status_output: must name a STRING output
+
+2 error(s), 0 warning(s). Nothing written.

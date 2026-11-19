@@ -1,0 +1,5 @@
+ERROR   outputs.StatusString: unsupported type 'S THEN
+TRING[50]'
+ERROR   state_machine.status_output: must name a STRING output
+
+2 error(s), 0 warning(s). Nothing written.

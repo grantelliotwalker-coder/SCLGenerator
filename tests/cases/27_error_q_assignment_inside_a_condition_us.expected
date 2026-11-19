@@ -1,0 +1,4 @@
+ERROR   state_machine.states[2] 'Running': ':=' (assignment) inside a condition; use '=' for comparison
+ERROR   state_machine.states[2] 'Running': 'RunCmdBoolOutput1' is used but not declared
+
+2 error(s), 0 warning(s). Nothing written.

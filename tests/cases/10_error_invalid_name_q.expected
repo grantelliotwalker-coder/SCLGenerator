@@ -1,0 +1,4 @@
+ERROR   inputs[4]: invalid name ' '
+ERROR   timers.start_check: preset source 'StartCheckTime' is not declared
+
+2 error(s), 0 warning(s). Nothing written.

@@ -1,0 +1,6 @@
+ERROR   state_machine.states[3]: value must be an INT 0..32767
+ERROR   state_machine.states[3]: name is required
+ERROR   state_machine.states[3]: condition is required
+ERROR   state_machine.states[3]: status is required
+
+4 error(s), 0 warning(s). Nothing written.

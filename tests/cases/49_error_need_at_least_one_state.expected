@@ -1,0 +1,8 @@
+ERROR   inputs[4]: invalid name 'STRING[300]'
+ERROR   timers.start_check: preset source 'StartCheckTime' is not declared
+ERROR   state_machine.status_output: must name a STRING output
+ERROR   state_machine.state_output: must name an INT output
+ERROR   state_machine.states: need at least one state
+ERROR   logic_sections[0]: needs 'title' and 'scl' text
+
+6 error(s), 0 warning(s). Nothing written.

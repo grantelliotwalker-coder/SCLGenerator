@@ -1,0 +1,4 @@
+ERROR   statics.InternalReal1: attributes must be an object of name: value
+WARNING statics.InternalReal1: attributes on static variables are ignored
+
+1 error(s), 1 warning(s). Nothing written.

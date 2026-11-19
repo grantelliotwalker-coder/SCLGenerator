@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sclgen · SCL block generator</title>
+<style>
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#18212b; --muted:#5c6976; --line:#d3dae1; --soft:#f5f7f9;
+  --accent:#0b6bcb; --accent-ink:#ffffff; --ok:#167a3e; --ok-bg:#e3f3e8; --err:#b3261e; --err-bg:#fbe7e5;
+  --warn:#8a5a00; --warn-bg:#fdf1d8; --sel:#cfe3fa;
+  --hl-kw:#7a2fb5; --hl-type:#0a6c74; --hl-com:#6b7785; --hl-str:#a6430e; --hl-num:#1a5fb4;
+  --mono:ui-monospace,"Cascadia Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+  --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#11161c; --panel:#192029; --ink:#e4e9ee; --muted:#93a1ae; --line:#2c3743; --soft:#141a21;
+    --accent:#4d9cf0; --accent-ink:#06121f; --ok:#5fcf8a; --ok-bg:#15301f; --err:#ff8a80; --err-bg:#3a1a18;
+    --warn:#f3c460; --warn-bg:#352a12; --sel:#24405f;
+    --hl-kw:#c99bf2; --hl-type:#5fd0d8; --hl-com:#7f8c99; --hl-str:#f0a36c; --hl-num:#8cbcf5;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);display:flex;flex-direction:column}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand b{font:600 17px var(--mono);letter-spacing:-.02em}
+.brand span{color:var(--muted);font-size:13px}
+.pill{font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+.pill.ok{color:var(--ok);background:var(--ok-bg)}
+.pill.err{color:var(--err);background:var(--err-bg)}
+.pill.warn{color:var(--warn);background:var(--warn-bg)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--soft)}
+.toolbar .grow{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+select.btn{padding-right:8px}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 16px;min-height:0}
+.pane{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:8px;min-height:0;overflow:hidden}
+.pane-head{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);min-height:38px}
+.pane-head strong{color:var(--ink);font-weight:600}
+.fname{font-family:var(--mono);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+textarea#spec{flex:1;width:100%;border:0;resize:none;padding:10px 12px;background:var(--panel);color:var(--ink);font:13px/1.5 var(--mono);tab-size:2;outline:none;min-height:0}
+textarea#spec::selection{background:var(--sel)}
+.tabs{display:flex;gap:2px}
+.tab{border:0;background:none;padding:6px 10px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:600}
+.tab[aria-selected="true"]{background:var(--soft);color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
+.count{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;font-size:11px;line-height:17px;text-align:center;background:var(--soft);color:var(--muted)}
+.count.e{background:var(--err-bg);color:var(--err)} .count.w{background:var(--warn-bg);color:var(--warn)}
+.view{flex:1;overflow:auto;min-height:0}
+#problems{list-style:none;margin:0;padding:6px}
+#problems li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:8px 10px;border-radius:6px;cursor:pointer}
+#problems li:hover{background:var(--soft)}
+#problems li.nojump{cursor:default}
+.sev{font:700 11px var(--mono);padding:2px 6px;border-radius:4px;align-self:start;margin-top:1px}
+.sev.ERROR,.sev.JSON,.sev.INTERNAL{color:var(--err);background:var(--err-bg)}
+.sev.WARNING{color:var(--warn);background:var(--warn-bg)}
+.where{font:12px var(--mono);color:var(--muted);word-break:break-all}
+.msg{grid-column:2}
+.empty{padding:28px 18px;color:var(--muted);text-align:center}
+.empty b{display:block;color:var(--ok);font-size:15px;margin-bottom:4px}
+pre#scl{margin:0;padding:10px 0;font:12.5px/1.5 var(--mono);counter-reset:l;white-space:pre;tab-size:4}
+pre#scl .l{display:block;padding:0 12px 0 0}
+pre#scl .l::before{counter-increment:l;content:counter(l);display:inline-block;width:3.2em;padding-right:1em;text-align:right;color:var(--hl-com);opacity:.6;user-select:none;-webkit-user-select:none}
+.k{color:var(--hl-kw);font-weight:600}.t{color:var(--hl-type)}.c{color:var(--hl-com);font-style:italic}.s{color:var(--hl-str)}.n{color:var(--hl-num)}
+footer{padding:6px 16px 10px;color:var(--muted);font-size:12px}
+details.help{font-size:13px}
+details.help summary{cursor:pointer;color:var(--accent);font-weight:600;list-style:none}
+details.help summary::-webkit-details-marker{display:none}
+details.help[open] .help-body{display:block}
+.help-body{position:absolute;right:16px;z-index:5;max-width:min(520px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 16px;box-shadow:0 8px 30px rgba(0,0,0,.18);margin-top:8px}
+.help-body ol{margin:6px 0;padding-left:20px}
+.help-body li{margin:4px 0}
+.help-body code{font-family:var(--mono);font-size:12px;background:var(--soft);padding:1px 4px;border-radius:3px}
+#drop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(11,107,203,.14);border:3px dashed var(--accent);z-index:10;font-size:20px;font-weight:600;color:var(--accent);pointer-events:none}
+body.dragging #drop{display:flex}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+#toast.show{opacity:.95}
+@media (max-width:820px){
+  html,body{height:auto}
+  main{flex:none;grid-template-columns:1fr}
+  .pane{height:62vh}
+  .brand span{display:none}
+  .toolbar .grow{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>sclgen</b><span>SCL function block generator · GCCC template</span></div>
+  <span id="status" class="pill">…</span>
+  <details class="help">
+    <summary>How it works</summary>
+    <div class="help-body">
+      <ol>
+        <li>Click <b>Copy AI instructions</b> and paste them into any AI chat, online or local, together with the manufacturer's info. The AI writes only a JSON <b>spec</b>, not the SCL.</li>
+        <li>Paste the spec into the left pane, or open or drop a <code>.json</code> file. The page checks it as you type. Click a problem to jump to it.</li>
+        <li>When there are no errors, review the SCL and click <b>Download .scl</b>. The file uses CRLF line endings for SIMATIC Manager or TIA import.</li>
+        <li>Compile the block in STEP 7, PCS 7 or TIA and test it. This page does not compile SCL.</li>
+      </ol>
+      <p style="margin:6px 0 0;color:var(--muted)">Everything runs in this page. Nothing is uploaded and it works with no internet connection. Your last spec is kept in this browser.</p>
+    </div>
+  </details>
+</header>
+<div class="toolbar">
+  <button class="btn" id="openBtn" type="button">Open spec…</button>
+  <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  <select class="btn" id="exampleSel" aria-label="Load an example">
+    <option value="">Load example…</option>
+    <option value="pump_run_monitor">Pump run feedback monitor</option>
+    <option value="template_threshold">GCCC template (threshold)</option>
+  </select>
+  <button class="btn" id="saveBtn" type="button">Save spec</button>
+  <button class="btn" id="aiBtn" type="button">Copy AI instructions</button>
+  <span class="grow"></span>
+  <button class="btn" id="copyBtn" type="button">Copy SCL</button>
+  <button class="btn primary" id="dlBtn" type="button">Download .scl</button>
+</div>
+<main>
+  <section class="pane">
+    <div class="pane-head"><strong>Spec</strong><span class="fname" id="fname">untitled.json</span></div>
+    <textarea id="spec" spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off" aria-label="JSON block spec"></textarea>
+  </section>
+  <section class="pane">
+    <div class="pane-head">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tabProblems" aria-selected="false" type="button">Problems<span class="count" id="probCount">0</span></button>
+        <button class="tab" role="tab" id="tabScl" aria-selected="true" type="button">SCL</button>
+      </div>
+    </div>
+    <div class="view" id="viewProblems" hidden><ul id="problems"></ul></div>
+    <div class="view" id="viewScl"><pre id="scl"></pre></div>
+  </section>
+</main>
+<footer>Runs entirely in this page. It does not compile SCL: always compile the output in STEP 7, PCS 7 or TIA and test it.</footer>
+<div id="drop">Drop a .json spec to open it</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Embedded copies of repo files. Keep in sync with: node tests/test.js --fix -->
+<script type="text/plain" id="embed-AI_INSTRUCTIONS.md">
+# Instructions for the AI session (paste this in, then attach the manufacturer's info)
+
+You are converting a description of a control function (manufacturer datasheet, I/O list,
+functional description or plain-English request) into a **JSON block spec** for our offline
+SCL generator. You do NOT write the finished SCL block. The generator builds the header,
+declarations, enable/reset section, timer presets, state/status section and timer engine.
+You supply only the spec.
+
+## Output rules
+1. Output **one JSON object only**, no prose, no markdown fences. It must validate against
+   `block_spec.schema.json` (attached or below).
+2. `spec_version` is `"1.0"`. `block.author` is `"WALKER"`, `block.family` is `"GCCC"` unless told otherwise.
+   `short_name`, `author`, `family` max 8 characters. `version` like `"1.0"`.
+3. Names: letters, digits, underscore, max 24 characters, meaningful (e.g. `RunFbk`, not `BoolInput3`).
+   No SCL reserved words. Names are not case-sensitive, so no two names may differ only by case.
+4. Every variable has a `comment` saying what it is and its units.
+5. Types allowed: BOOL, INT, DINT, REAL, WORD, DWORD, BYTE, TIME, STRING[n].
+6. `attr_preset`: `"hmi"` for values shown on the operator screen, `"param"` for operator/engineer
+   adjustable parameters, `"sampletime"` only for the SampleTime input, `"none"` otherwise.
+7. Must include a BOOL input named in `enable_input`.
+8. If there are any timers, include a REAL input `SampleTime` with `attr_preset: "sampletime"`.
+
+## Timers
+- Declare each timer in `timers` with an `id` and a preset: `{"seconds": 5.0}` for a fixed time, or
+  `{"from": "SomeInput"}` to take it from a REAL input (preferred: lets the operator tune it).
+- In logic, refer to a timer as `{timer:<id>}`, e.g. `{timer:on_delay}.IN := TRUE;`.
+  Fields: `.IN` (run), `.Q` (done), `.RESET` (set TRUE to clear; it clears itself), `.ET`, `.RT`.
+- **Never** set `.PT` in logic. Presets come only from the `timers` list.
+- `.Q` is updated at the end of each scan, so logic sees last scan's value. That is intended.
+
+## Logic sections
+- `logic_sections` is an ordered list of `{title, description[], scl}`. Keep each section to one job
+  (input conditioning, interlocks, fault detection, output logic...).
+- `scl` contains plain SCL statements only: `:=` for assignment, `=` for comparison, every statement
+  ends with `;`, every IF has END_IF. No RETURN. Do not declare variables here; declare them in
+  inputs/outputs/statics.
+- Do not write the enable/disable reset, the state CASE, or the timer FOR loop. The generator does that.
+- Use only variables you declared. Comment non-obvious lines with `// ...`.
+
+## State machine
+- `state_output` is an INT output, `status_output` a STRING output.
+- `states` are tested **in list order**, first match wins; put the highest priority (faults) first.
+- The last state may use `"condition": "ELSE"` as the default (usually idle/stopped).
+- `status` text must fit the STRING length. `safe_value` must be one of the state values.
+
+## If information is missing
+Do not invent setpoints, addresses or timings silently. Use a sensible default and add the
+assumption to `block.how_it_works` starting with `ASSUMPTION:` so the engineer sees it in the
+block header.
+
+## Example
+See `examples/pump_run_monitor.json` for a complete correct spec.
+</script>
+<script type="application/json" id="embed-schema/block_spec.schema.json">
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "gccc-scl-block-spec-1.0",
+  "title": "GCCC SCL function block spec v1.0",
+  "description": "Input format for sclgen.html. One spec = one FUNCTION_BLOCK.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "spec_version",
+    "block",
+    "enable_input",
+    "inputs",
+    "outputs",
+    "logic_sections",
+    "state_machine"
+  ],
+  "properties": {
+    "spec_version": {
+      "const": "1.0"
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "title",
+        "author",
+        "family",
+        "short_name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "maxLength": 24
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 8
+        },
+        "family": {
+          "type": "string",
+          "maxLength": 8
+        },
+        "short_name": {
+          "type": "string",
+          "maxLength": 8
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]{1,2}\\.[0-9]{1,2}$"
+        },
+        "type": {
+          "const": "FUNCTION_BLOCK"
+        },
+        "know_how_protect": {
+          "type": "boolean"
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "how_it_works": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "enable_input": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "maxLength": 24
+    },
+    "sample_time_input": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "maxLength": 24
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "type",
+          "comment"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "maxLength": 24
+          },
+          "type": {
+            "type": "string",
+            "pattern": "^(BOOL|BYTE|WORD|DWORD|INT|DINT|REAL|TIME|S5TIME|DATE|TIME_OF_DAY|TOD|CHAR|STRING\\[[0-9]{1,3}\\])$"
+          },
+          "initial": {
+            "type": [
+              "boolean",
+              "number",
+              "string"
+            ]
+          },
+          "reset_value": {
+            "type": [
+              "boolean",
+              "number",
+              "string"
+            ]
+          },
+          "reset_on_disable": {
+            "type": "boolean"
+          },
+          "attr_preset": {
+            "type": "string",
+            "enum": [
+              "none",
+              "hmi",
+              "param",
+              "sampletime"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "type",
+          "comment"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "maxLength": 24
+          },
+          "type": {
+            "type": "string",
+            "pattern": "^(BOOL|BYTE|WORD|DWORD|INT|DINT|REAL|TIME|S5TIME|DATE|TIME_OF_DAY|TOD|CHAR|STRING\\[[0-9]{1,3}\\])$"
+          },
+          "initial": {
+            "type": [
+              "boolean",
+              "number",
+              "string"
+            ]
+          },
+          "reset_value": {
+            "type": [
+              "boolean",
+              "number",
+              "string"
+            ]
+          },
+          "reset_on_disable": {
+            "type": "boolean"
+          },
+          "attr_preset": {
+            "type": "string",
+            "enum": [
+              "none",
+              "hmi",
+              "param",
+              "sampletime"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "in_outs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "type",
+          "comment"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "maxLength": 24
+          },
+          "type": {
+            "type": "string",
+            "pattern": "^(BOOL|BYTE|WORD|DWORD|INT|DINT|REAL|TIME|S5TIME|DATE|TIME_OF_DAY|TOD|CHAR|STRING\\[[0-9]{1,3}\\])$"
+          },
+          "initial": {
+            "type": [
+              "boolean",
+              "number",
+              "string"
+            ]
+          },
+          "reset_value": {
+            "type": [
+              "boolean",
+              "number",
+              "string"
+            ]
+          },
+          "reset_on_disable": {
+            "type": "boolean"
+          },
+          "attr_preset": {
+            "type": "string",
+            "enum": [
+              "none",
+              "hmi",
+              "param",
+              "sampletime"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "statics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "type",
+          "comment"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "maxLength": 24
+          },
+          "type": {
+            "type": "string",
+            "pattern": "^(BOOL|BYTE|WORD|DWORD|INT|DINT|REAL|TIME|S5TIME|DATE|TIME_OF_DAY|TOD|CHAR|STRING\\[[0-9]{1,3}\\])$"
+          },
+          "initial": {
+            "type": [
+              "boolean",
+              "number",
+              "string"
+            ]
+          },
+          "reset_value": {
+            "type": [
+              "boolean",
+              "number",
+              "string"
+            ]
+          },
+          "reset_on_disable": {
+            "type": "boolean"
+          },
+          "attr_preset": {
+            "type": "string",
+            "enum": [
+              "none",
+              "hmi",
+              "param",
+              "sampletime"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "timers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "preset"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "maxLength": 24
+          },
+          "comment": {
+            "type": "string"
+          },
+          "preset": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "seconds"
+                ],
+                "properties": {
+                  "seconds": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "from"
+                ],
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                    "maxLength": 24
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "logic_sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "scl"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scl": {
+            "type": "string",
+            "description": "SCL statements. Use {timer:<id>} to reference a timer, e.g. {timer:on_delay}.Q"
+          }
+        }
+      }
+    },
+    "state_machine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_output",
+        "status_output",
+        "states"
+      ],
+      "properties": {
+        "state_output": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "maxLength": 24
+        },
+        "status_output": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "maxLength": 24
+        },
+        "safe_value": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "disabled_status": {
+          "type": "string"
+        },
+        "unknown_status": {
+          "type": "string"
+        },
+        "states": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "name",
+              "condition",
+              "status"
+            ],
+            "properties": {
+              "value": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "name": {
+                "type": "string"
+              },
+              "condition": {
+                "type": "string",
+                "description": "Boolean SCL expression, or ELSE on the last state"
+              },
+              "status": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}</script>
+<script type="application/json" id="embed-examples/pump_run_monitor.json">
+{
+  "spec_version": "1.0",
+  "block": {
+    "name": "PumpRunMon",
+    "title": "Pump run feedback monitor",
+    "author": "WALKER",
+    "family": "GCCC",
+    "short_name": "PMPRUN",
+    "version": "1.0",
+    "know_how_protect": true,
+    "attributes": { "S7_m_c": "true", "S7_tasklist": "OB100" },
+    "purpose": "Checks a pump's run feedback against its run command and latches fail to start / fail to stop faults.",
+    "how_it_works": [
+      "Fail to start: RunCmd is TRUE but RunFbk is not seen within StartCheckTime seconds.",
+      "Fail to stop: RunCmd is FALSE but RunFbk is still TRUE after StopCheckTime seconds.",
+      "Faults latch until a rising edge on FaultReset. Fault is the OR of both faults."
+    ]
+  },
+  "enable_input": "Enable",
+  "sample_time_input": "SampleTime",
+  "inputs": [
+    { "name": "Enable", "type": "BOOL", "initial": true, "attr_preset": "hmi",
+      "comment": "Block enable, must be TRUE for any monitoring to run" },
+    { "name": "RunCmd", "type": "BOOL", "initial": false, "attr_preset": "hmi",
+      "comment": "Run command sent to the pump starter" },
+    { "name": "RunFbk", "type": "BOOL", "initial": false, "attr_preset": "hmi",
+      "comment": "Run feedback from the starter auxiliary contact" },
+    { "name": "FaultReset", "type": "BOOL", "initial": false, "attr_preset": "hmi",
+      "comment": "Fault reset, rising edge clears latched faults" },
+    { "name": "StartCheckTime", "type": "REAL", "initial": 10.0, "attr_preset": "param",
+      "comment": "Seconds allowed for run feedback after the run command" },
+    { "name": "StopCheckTime", "type": "REAL", "initial": 10.0, "attr_preset": "param",
+      "comment": "Seconds allowed for run feedback to drop after the command is removed" },
+    { "name": "SampleTime", "type": "REAL", "attr_preset": "sampletime",
+      "comment": "Cycle time of the PLC in seconds, used for timer logic" }
+  ],
+  "outputs": [
+    { "name": "FailToStart", "type": "BOOL", "initial": false, "attr_preset": "hmi",
+      "comment": "Latched fault, no run feedback within StartCheckTime" },
+    { "name": "FailToStop", "type": "BOOL", "initial": false, "attr_preset": "hmi",
+      "comment": "Latched fault, run feedback still present after StopCheckTime" },
+    { "name": "Fault", "type": "BOOL", "initial": false, "attr_preset": "hmi",
+      "comment": "Common fault, TRUE if either fault is latched" },
+    { "name": "State", "type": "INT", "initial": 0, "attr_preset": "hmi",
+      "comment": "State, 0 = stopped, 1 = starting, 2 = running, 3 = stopping, 9 = fault" },
+    { "name": "StatusString", "type": "STRING[50]", "attr_preset": "hmi",
+      "comment": "Diagnostic status string for the operator screen" }
+  ],
+  "statics": [
+    { "name": "FaultResetPrev", "type": "BOOL", "initial": false,
+      "comment": "FaultReset value from the previous scan for rising edge detection" }
+  ],
+  "timers": [
+    { "id": "start_check", "preset": { "from": "StartCheckTime" }, "comment": "Fail to start check" },
+    { "id": "stop_check",  "preset": { "from": "StopCheckTime" },  "comment": "Fail to stop check" }
+  ],
+  "logic_sections": [
+    {
+      "title": "Fault detection",
+      "description": [
+        "Each check timer runs while command and feedback disagree.",
+        "A timer elapsing latches the matching fault."
+      ],
+      "scl": "{timer:start_check}.IN := RunCmd AND NOT RunFbk AND NOT FailToStart; // Commanded on, no feedback yet\n{timer:stop_check}.IN := NOT RunCmd AND RunFbk AND NOT FailToStop; // Commanded off, feedback still on\n\nIF {timer:start_check}.Q THEN\n    FailToStart := TRUE; // Latch fail to start\nEND_IF;\n\nIF {timer:stop_check}.Q THEN\n    FailToStop := TRUE; // Latch fail to stop\nEND_IF;"
+    },
+    {
+      "title": "Fault reset",
+      "description": [
+        "A rising edge on FaultReset clears both latched faults and restarts the checks."
+      ],
+      "scl": "IF FaultReset AND NOT FaultResetPrev THEN\n    FailToStart := FALSE;\n    FailToStop := FALSE;\n    {timer:start_check}.RESET := TRUE; // Restart the check if the condition is still present\n    {timer:stop_check}.RESET := TRUE;\nEND_IF;\nFaultResetPrev := FaultReset; // Remember for edge detection next scan\n\nFault := FailToStart OR FailToStop; // Common fault"
+    }
+  ],
+  "state_machine": {
+    "state_output": "State",
+    "status_output": "StatusString",
+    "safe_value": 0,
+    "disabled_status": "Disabled",
+    "unknown_status": "Error/Unknown",
+    "states": [
+      { "value": 9, "name": "Fault", "condition": "Fault", "status": "Fault: Check pump and reset" },
+      { "value": 1, "name": "Starting", "condition": "{timer:start_check}.IN", "status": "Starting: Waiting for run feedback" },
+      { "value": 2, "name": "Running", "condition": "RunCmd AND RunFbk", "status": "Running" },
+      { "value": 3, "name": "Stopping", "condition": "{timer:stop_check}.IN", "status": "Stopping: Waiting for feedback to drop" },
+      { "value": 0, "name": "Stopped", "condition": "ELSE", "status": "Stopped" }
+    ]
+  }
+}
+</script>
+<script type="application/json" id="embed-examples/template_threshold.json">
+{
+  "spec_version": "1.0",
+  "block": {
+    "name": "BlockName",
+    "title": "Block Title Here",
+    "author": "WALKER",
+    "family": "GCCC",
+    "short_name": "ShortNam",
+    "version": "1.0",
+    "know_how_protect": true,
+    "attributes": { "S7_m_c": "true", "S7_tasklist": "OB100" },
+    "purpose": "Reusable template block with working compilable logic.",
+    "how_it_works": [
+      "BoolInput1 enables the block. When enabled, RealInput1 (clamped 0-100) is compared to RealSetpoint1.",
+      "If RealInput1 stays above RealSetpoint1 for IntInput1 consecutive scans, the on delay timer starts",
+      "and BoolOutput1 turns on when it elapses. When the condition is lost the off delay turns it off.",
+      "When BoolInput1 is FALSE the block resets cleanly.",
+      "StatusString always reflects the current operating condition for diagnostics."
+    ]
+  },
+  "enable_input": "BoolInput1",
+  "sample_time_input": "SampleTime",
+
+  "inputs": [
+    { "name": "BoolInput1", "type": "BOOL", "initial": false, "attr_preset": "hmi",
+      "comment": "Block enable, must be TRUE for any logic to run" },
+    { "name": "RealInput1", "type": "REAL", "initial": 0.0, "attr_preset": "param",
+      "comment": "Measured process value to compare against setpoint (engineering units)" },
+    { "name": "RealSetpoint1", "type": "REAL", "initial": 50.0, "attr_preset": "param",
+      "comment": "Setpoint RealInput1 must exceed (engineering units, 0-100)" },
+    { "name": "IntInput1", "type": "INT", "initial": 10, "attr_preset": "param",
+      "comment": "Number of consecutive scans RealInput1 must exceed RealSetpoint1 before timing starts" },
+    { "name": "OnDelayTime", "type": "REAL", "initial": 5.0, "attr_preset": "param",
+      "comment": "On delay in seconds before BoolOutput1 turns on" },
+    { "name": "OffDelayTime", "type": "REAL", "initial": 3.0, "attr_preset": "param",
+      "comment": "Off delay in seconds before BoolOutput1 turns off" },
+    { "name": "SampleTime", "type": "REAL", "attr_preset": "sampletime",
+      "comment": "Cycle time of the PLC in seconds, used for timer logic" }
+  ],
+
+  "outputs": [
+    { "name": "BoolOutput1", "type": "BOOL", "initial": false, "attr_preset": "hmi",
+      "comment": "Output active flag, TRUE when condition confirmed for timer duration" },
+    { "name": "RealOutput1", "type": "REAL", "initial": 0.0, "attr_preset": "hmi",
+      "comment": "Scaled output value, reflects RealInput1 when active, zero when inactive" },
+    { "name": "IntOutput1", "type": "INT", "initial": 0, "attr_preset": "hmi",
+      "comment": "State, 0 = idle, 1 = on delay timing, 2 = active with off delay timing, 3 = active" },
+    { "name": "StatusString", "type": "STRING[50]", "attr_preset": "hmi",
+      "comment": "Diagnostic status string indicating current operating condition" }
+  ],
+
+  "statics": [
+    { "name": "InternalReal1", "type": "REAL", "initial": 0.0,
+      "comment": "RealInput1 clamped to 0-100 for internal calculations" },
+    { "name": "InternalInt1", "type": "INT", "initial": 0,
+      "comment": "Scan counter, consecutive scans RealInput1 has exceeded the setpoint" }
+  ],
+
+  "timers": [
+    { "id": "on_delay",  "preset": { "from": "OnDelayTime" },  "comment": "On delay before output turns on" },
+    { "id": "off_delay", "preset": { "from": "OffDelayTime" }, "comment": "Off delay before output turns off" }
+  ],
+
+  "logic_sections": [
+    {
+      "title": "Input conditioning",
+      "description": [
+        "InternalReal1 clamps RealInput1 to a 0-100 range for safe use downstream.",
+        "InternalInt1 counts consecutive scans where it exceeds RealSetpoint1."
+      ],
+      "scl": "InternalReal1 := LIMIT(MN:=0.0, IN:=RealInput1, MX:=100.0); // Clamp RealInput1 to 0-100 range\n\nIF InternalReal1 > RealSetpoint1 THEN\n    IF InternalInt1 < 32767 THEN\n        InternalInt1 := InternalInt1 + 1; // Count consecutive scans above setpoint, capped so it cannot overflow\n    END_IF;\nELSE\n    InternalInt1 := 0; // Reset the moment RealInput1 drops back to or below setpoint\nEND_IF;"
+    },
+    {
+      "title": "Timer control logic",
+      "description": [
+        "The on delay starts once the scan counter confirms the condition for IntInput1 scans.",
+        "This double confirmation prevents false triggers from signal spikes.",
+        "The off delay starts when the output is active but the condition is lost."
+      ],
+      "scl": "IF InternalInt1 >= IntInput1 AND NOT BoolOutput1 THEN\n    {timer:on_delay}.IN := TRUE; // Condition confirmed for enough scans, start on delay\n    {timer:off_delay}.IN := FALSE;\nELSIF BoolOutput1 AND InternalInt1 = 0 THEN\n    {timer:off_delay}.IN := TRUE; // Output on but condition lost, start off delay\n    {timer:on_delay}.IN := FALSE;\nELSE\n    {timer:on_delay}.IN := FALSE; // No transition pending, stop both timers\n    {timer:off_delay}.IN := FALSE;\nEND_IF;"
+    },
+    {
+      "title": "Output logic",
+      "description": [
+        "On delay elapsing turns the output on, off delay elapsing turns it off.",
+        "RealOutput1 tracks the clamped process value while active and clears when inactive."
+      ],
+      "scl": "IF {timer:on_delay}.Q THEN\n    BoolOutput1 := TRUE; // On delay elapsed, condition confirmed\n    {timer:on_delay}.IN := FALSE;\n    {timer:on_delay}.RESET := TRUE; // Ready for next cycle\nEND_IF;\n\nIF {timer:off_delay}.Q THEN\n    BoolOutput1 := FALSE; // Off delay elapsed, condition lost\n    {timer:off_delay}.IN := FALSE;\n    {timer:off_delay}.RESET := TRUE; // Ready for next cycle\nEND_IF;\n\nIF BoolOutput1 THEN\n    RealOutput1 := InternalReal1; // Pass scaled value while active\nELSE\n    RealOutput1 := 0.0; // Clear when inactive\nEND_IF;"
+    }
+  ],
+
+  "state_machine": {
+    "state_output": "IntOutput1",
+    "status_output": "StatusString",
+    "safe_value": 0,
+    "disabled_status": "Disabled",
+    "unknown_status": "Error/Unknown",
+    "states": [
+      { "value": 1, "name": "On delay timing", "condition": "{timer:on_delay}.IN",
+        "status": "Timing: On delay active" },
+      { "value": 2, "name": "Active, off delay timing", "condition": "BoolOutput1 AND {timer:off_delay}.IN",
+        "status": "Active: Off delay counting" },
+      { "value": 3, "name": "Active", "condition": "BoolOutput1",
+        "status": "Active: Output on" },
+      { "value": 0, "name": "Idle", "condition": "ELSE",
+        "status": "Idle: Waiting for condition" }
+    ]
+  }
+}
+</script>
+
+<script>
+/* ENGINE START */
+// sclgen engine: validates a JSON block spec and generates a Siemens SCL FUNCTION_BLOCK.
+// Ported line by line from the original sclgen.py so the output is identical, including its
+// Python-style handling of odd input (for example, a REAL written as 10.0 vs an INT written as 10).
+const SCLGEN = (() => {
+  'use strict';
+  const GENERATOR_VERSION = '1.0';
+  const SPEC_VERSIONS = ['1.0'];
+  const SEP = '// ' + '-'.repeat(89);
+  const STAR = '//' + '*'.repeat(92);
+
+  // Attribute presets (PCS 7 / STEP 7 system attributes)
+  const ATTR_PRESETS = {
+    none: [],
+    hmi: [['S7_m_c', 'true']],
+    param: [['S7_m_c', 'true'], ['S7_param', 'true'], ['S7_read_back', 'always'], ['S7_link', 'false']],
+    sampletime: [['S7_visible', 'false'], ['S7_sampletime', 'true'], ['S7_param', 'false'], ['S7_link', 'false']],
+  };
+  const ATTR_PRESET_LIST = "['none', 'hmi', 'param', 'sampletime']";
+
+  const ELEMENTARY = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'INT', 'DINT', 'REAL',
+    'TIME', 'S5TIME', 'DATE', 'TIME_OF_DAY', 'TOD', 'CHAR']);
+  const STRING_RE = /^STRING\[([0-9]+)\]$/;
+  const IDENT_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
+  const TIMER_REF_RE = /\{timer:([A-Za-z_][A-Za-z0-9_]*)\}/g;
+
+  const RESERVED = new Set([
+    'AND', 'ANY', 'ARRAY', 'BEGIN', 'BLOCK_DB', 'BLOCK_FB', 'BLOCK_FC', 'BLOCK_SDB', 'BOOL', 'BY',
+    'BYTE', 'CASE', 'CHAR', 'CONST', 'CONTINUE', 'COUNTER', 'DATA_BLOCK', 'DATE', 'DINT', 'DIV',
+    'DO', 'DT', 'DWORD', 'ELSE', 'ELSIF', 'EN', 'ENO', 'END_CASE', 'END_CONST', 'END_DATA_BLOCK',
+    'END_FOR', 'END_FUNCTION', 'END_FUNCTION_BLOCK', 'END_IF', 'END_LABEL', 'END_ORGANIZATION_BLOCK',
+    'END_REPEAT', 'END_STRUCT', 'END_TYPE', 'END_VAR', 'END_WHILE', 'EXIT', 'FALSE', 'FOR',
+    'FUNCTION', 'FUNCTION_BLOCK', 'GOTO', 'IF', 'INT', 'LABEL', 'MOD', 'NIL', 'NOT', 'OF', 'OK',
+    'OR', 'ORGANIZATION_BLOCK', 'POINTER', 'REAL', 'REPEAT', 'RETURN', 'S5TIME', 'STRING',
+    'STRUCT', 'THEN', 'TIME', 'TIMER', 'TIME_OF_DAY', 'TO', 'TOD', 'TRUE', 'TYPE', 'UNTIL',
+    'VAR', 'VAR_IN_OUT', 'VAR_INPUT', 'VAR_OUTPUT', 'VAR_TEMP', 'VOID', 'WHILE', 'WORD', 'XOR',
+  ]);
+  const KNOWN_FUNCS = new Set([
+    'LIMIT', 'MIN', 'MAX', 'ABS', 'SQR', 'SQRT', 'EXP', 'EXPD', 'LN', 'LOG', 'SIN', 'COS', 'TAN',
+    'ASIN', 'ACOS', 'ATAN', 'TRUNC', 'ROUND', 'SEL', 'MUX', 'SHL', 'SHR', 'ROL', 'ROR', 'LEN',
+    'CONCAT', 'LEFT', 'RIGHT', 'MID', 'INSERT', 'DELETE', 'REPLACE', 'FIND',
+  ]);
+  const CONVERSION_RE = /^[A-Z_]+_TO_[A-Z_]+$/;
+
+  // Names the generator itself declares
+  const TIMER_ARRAY = 'tmTimers';
+  const TIMER_INDEX = 'tiIndex';
+  const MAX_TIMER_PRESET_S = 86400.0; // clamp for presets taken from inputs (24 h)
+
+  // ---------------------------------------------------------------------------
+  // Python-compatible values. The spec parser below keeps JSON objects in key order
+  // (PyDict), keeps whole numbers (10) apart from decimals (10.0, boxed as Number objects),
+  // and these helpers reproduce how Python treats them.
+  // ---------------------------------------------------------------------------
+  class PyDict extends Map {}
+  class PyCrash extends Error {}   // the Python version would have stopped with a traceback
+  class ValueErr extends Error {}  // Python ValueError, caught where the original caught it
+  class SpecError extends Error {}
+
+  const isFloat = (x) => x instanceof Number;
+  const isInt = (x) => typeof x === 'number' || typeof x === 'bigint';
+  const isNum = (x) => isInt(x) || isFloat(x);
+  const isStr = (x) => typeof x === 'string';
+  const isBool = (x) => typeof x === 'boolean';
+  const isList = (x) => Array.isArray(x);
+  const isDict = (x) => x instanceof PyDict;
+  const num = (x) => Number(isFloat(x) ? x.valueOf() : x);
+
+  function typeName(x) {
+    if (x === null || x === undefined) return 'NoneType';
+    if (isBool(x)) return 'bool';
+    if (isInt(x)) return 'int';
+    if (isFloat(x)) return 'float';
+    if (isStr(x)) return 'str';
+    if (isList(x)) return 'list';
+    if (isDict(x)) return 'dict';
+    return typeof x;
+  }
+  function get(d, k, def) {
+    if (!isDict(d)) throw new PyCrash(`AttributeError: '${typeName(d)}' object has no attribute 'get'`);
+    return d.has(k) ? d.get(k) : def;
+  }
+  function sub(d, k) {
+    if (!isDict(d)) throw new PyCrash(`TypeError: '${typeName(d)}' object is not subscriptable`);
+    if (!d.has(k)) throw new PyCrash(`KeyError: ${repr(k)}`);
+    return d.get(k);
+  }
+  function truthy(x) {
+    if (x === null || x === undefined) return false;
+    if (isBool(x)) return x;
+    if (typeof x === 'number') return x !== 0;
+    if (typeof x === 'bigint') return x !== 0n;
+    if (isFloat(x)) return x.valueOf() !== 0;
+    if (isStr(x) || isList(x)) return x.length > 0;
+    if (isDict(x)) return x.size > 0;
+    return true;
+  }
+  const or = (a, b) => (truthy(a) ? a : b);
+  function iter(x) {
+    if (isList(x)) return x;
+    if (isStr(x)) return Array.from(x);
+    if (isDict(x)) return [...x.keys()];
+    throw new PyCrash(`TypeError: '${typeName(x)}' object is not iterable`);
+  }
+  function items(x) {
+    if (!isDict(x)) throw new PyCrash(`AttributeError: '${typeName(x)}' object has no attribute 'items'`);
+    return [...x.entries()];
+  }
+  function upper(x) {
+    if (!isStr(x)) throw new PyCrash(`AttributeError: '${typeName(x)}' object has no attribute 'upper'`);
+    return x.toUpperCase();
+  }
+  const plen = (s) => Array.from(s).length;            // length in characters, like Python
+  const pslice = (s, n) => Array.from(s).slice(0, n).join('');
+
+  // Python whitespace (str.isspace and \s)
+  const PY_WS = '\\t\\n\\v\\f\\r\\x1c-\\x1f \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000';
+  const WS = `[${PY_WS}]`;
+  const WS_CHAR = new RegExp(`^${WS}$`, 'u');
+  function strip(s) {
+    let a = 0, b = s.length;
+    while (a < b && WS_CHAR.test(s[a])) a++;
+    while (b > a && WS_CHAR.test(s[b - 1])) b--;
+    return s.slice(a, b);
+  }
+  function rstrip(s) {
+    let b = s.length;
+    while (b > 0 && WS_CHAR.test(s[b - 1])) b--;
+    return s.slice(0, b);
+  }
+  function splitlines(s) {
+    if (s === '') return [];
+    const parts = s.split(/\r\n|[\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029]/u);
+    if (parts[parts.length - 1] === '') parts.pop();
+    return parts;
+  }
+
+  // Python's \w, \b and \d for the lint regexes (Unicode aware, like Python 3)
+  const W = '[\\p{L}\\p{N}_]';
+  const B0 = `(?<!${W})`; // \b before a word character
+  const B1 = `(?!${W})`;  // \b after a word character
+  const D = '\\p{Nd}';
+
+  function floatRepr(f) {
+    if (Number.isNaN(f)) return 'nan';
+    if (f === Infinity) return 'inf';
+    if (f === -Infinity) return '-inf';
+    if (f === 0) return Object.is(f, -0) ? '-0.0' : '0.0';
+    const m = /^(\d+)(?:\.(\d+))?(?:e([+-]\d+))?$/.exec(String(Math.abs(f)));
+    const all = m[1] + (m[2] || '');
+    const lead = /^0*/.exec(all)[0].length;
+    const digits = all.slice(lead).replace(/0+$/, '');
+    const exp = m[1].length - 1 - lead + (m[3] ? parseInt(m[3], 10) : 0);
+    let out;
+    if (exp < -4 || exp >= 16) {
+      out = digits[0] + (digits.length > 1 ? '.' + digits.slice(1) : '') +
+        'e' + (exp < 0 ? '-' : '+') + String(Math.abs(exp)).padStart(2, '0');
+    } else if (exp >= 0) {
+      out = digits.length <= exp + 1
+        ? digits + '0'.repeat(exp + 1 - digits.length) + '.0'
+        : digits.slice(0, exp + 1) + '.' + digits.slice(exp + 1);
+    } else {
+      out = '0.' + '0'.repeat(-exp - 1) + digits;
+    }
+    return (f < 0 ? '-' : '') + out;
+  }
+  function reprStr(s) {
+    const q = (s.includes("'") && !s.includes('"')) ? '"' : "'";
+    let out = q;
+    for (const ch of s) {
+      const cp = ch.codePointAt(0);
+      if (ch === q || ch === '\\') out += '\\' + ch;
+      else if (ch === '\n') out += '\\n';
+      else if (ch === '\r') out += '\\r';
+      else if (ch === '\t') out += '\\t';
+      else if (cp >= 0x20 && cp < 0x7f) out += ch;
+      else if (cp >= 0x7f && !/[\p{C}\p{Z}]/u.test(ch)) out += ch;
+      else if (cp <= 0xff) out += '\\x' + cp.toString(16).padStart(2, '0');
+      else if (cp <= 0xffff) out += '\\u' + cp.toString(16).padStart(4, '0');
+      else out += '\\U' + cp.toString(16).padStart(8, '0');
+    }
+    return out + q;
+  }
+  function repr(x) {
+    if (isStr(x)) return reprStr(x);
+    if (isList(x)) return '[' + x.map(repr).join(', ') + ']';
+    if (isDict(x)) return '{' + [...x].map(([k, v]) => repr(k) + ': ' + repr(v)).join(', ') + '}';
+    return str(x);
+  }
+  function str(x) {
+    if (isStr(x)) return x;
+    if (x === null || x === undefined) return 'None';
+    if (isBool(x)) return x ? 'True' : 'False';
+    if (isInt(x)) return String(x);
+    if (isFloat(x)) return floatRepr(x.valueOf());
+    return repr(x);
+  }
+  let nanSeq = 0;
+  function hashKey(x) { // Python set/dict membership (1 == 1.0 == True)
+    if (x === null || x === undefined) return 'None';
+    if (isBool(x)) return 'n:' + (x ? 1 : 0);
+    if (isInt(x)) return 'n:' + String(x);
+    if (isFloat(x)) {
+      const f = x.valueOf();
+      if (Number.isNaN(f)) return 'nan:' + (nanSeq++);
+      if (Number.isInteger(f)) return 'n:' + BigInt(f).toString();
+      return 'f:' + String(f);
+    }
+    if (isStr(x)) return 's:' + x;
+    throw new PyCrash(`TypeError: unhashable type: '${typeName(x)}'`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // JSON parser: same rules and error messages as Python's json module, plus the
+  // position of every value so problems can be shown in the editor.
+  // ---------------------------------------------------------------------------
+  class JSONError extends Error {
+    constructor(msg, doc, pos) {
+      super(msg);
+      this.pos = pos;
+      const before = doc.slice(0, pos);
+      this.lineno = (before.match(/\n/g) || []).length + 1;
+      this.colno = Array.from(before.slice(before.lastIndexOf('\n') + 1)).length + 1;
+    }
+  }
+  const NUM_RE = /-?(?:0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?/y;
+  const MAX_SAFE = BigInt(Number.MAX_SAFE_INTEGER), MIN_SAFE = -MAX_SAFE;
+  const ESC = { '"': '"', '\\': '\\', '/': '/', b: '\b', f: '\f', n: '\n', r: '\r', t: '\t' };
+  const pathKey = (path) => path.join('\u0001');
+
+  function parseJSON(doc) {
+    const spans = new Map();
+    const n = doc.length;
+    let i = doc.charCodeAt(0) === 0xFEFF ? 1 : 0; // a UTF-8 BOM is allowed
+    const ws = () => {
+      while (i < n) {
+        const c = doc.charCodeAt(i);
+        if (c === 32 || c === 9 || c === 10 || c === 13) i++; else break;
+      }
+    };
+    function string() {
+      const begin = i;
+      i++;
+      let out = '';
+      for (;;) {
+        let j = i;
+        while (j < n) {
+          const c = doc.charCodeAt(j);
+          if (c === 34 || c === 92 || c < 32) break;
+          j++;
+        }
+        out += doc.slice(i, j);
+        if (j >= n) throw new JSONError('Unterminated string starting at', doc, begin);
+        const c = doc.charCodeAt(j);
+        if (c === 34) { i = j + 1; return out; }
+        if (c < 32) throw new JSONError('Invalid control character at', doc, j);
+        const e = doc[j + 1];
+        if (e === undefined) throw new JSONError('Unterminated string starting at', doc, begin);
+        if (e !== 'u') {
+          if (!Object.prototype.hasOwnProperty.call(ESC, e)) throw new JSONError('Invalid \\escape', doc, j);
+          out += ESC[e];
+          i = j + 2;
+        } else {
+          const hex = doc.slice(j + 2, j + 6);
+          if (!/^[0-9a-fA-F]{4}$/.test(hex)) throw new JSONError('Invalid \\uXXXX escape', doc, j + 1);
+          out += String.fromCharCode(parseInt(hex, 16));
+          i = j + 6;
+        }
+      }
+    }
+    function value(path) {
+      if (i >= n) throw new JSONError('Expecting value', doc, i);
+      const start = i;
+      const ch = doc[i];
+      let v;
+      if (ch === '"') v = string();
+      else if (ch === '{') v = object(path);
+      else if (ch === '[') v = array(path);
+      else if (doc.startsWith('null', i)) { v = null; i += 4; }
+      else if (doc.startsWith('true', i)) { v = true; i += 4; }
+      else if (doc.startsWith('false', i)) { v = false; i += 5; }
+      else if (doc.startsWith('NaN', i)) { v = new Number(NaN); i += 3; }
+      else if (doc.startsWith('Infinity', i)) { v = new Number(Infinity); i += 8; }
+      else if (doc.startsWith('-Infinity', i)) { v = new Number(-Infinity); i += 9; }
+      else {
+        NUM_RE.lastIndex = i;
+        const m = NUM_RE.exec(doc);
+        if (!m) throw new JSONError('Expecting value', doc, i);
+        i += m[0].length;
+        if (m[1] || m[2]) v = new Number(Number(m[0]));
+        else {
+          const big = BigInt(m[0]);
+          v = (big >= MIN_SAFE && big <= MAX_SAFE) ? Number(big) : big;
+        }
+      }
+      spans.set(pathKey(path), [start, i]);
+      return v;
+    }
+    function object(path) {
+      i++;
+      const d = new PyDict();
+      ws();
+      if (doc[i] === '}') { i++; return d; }
+      for (;;) {
+        if (doc[i] !== '"') throw new JSONError('Expecting property name enclosed in double quotes', doc, i);
+        const key = string();
+        ws();
+        if (doc[i] !== ':') throw new JSONError("Expecting ':' delimiter", doc, i);
+        i++;
+        ws();
+        d.set(key, value([...path, key]));
+        ws();
+        if (doc[i] === '}') { i++; return d; }
+        if (doc[i] !== ',') throw new JSONError("Expecting ',' delimiter", doc, i);
+        const comma = i;
+        i++;
+        ws();
+        if (doc[i] === '}') throw new JSONError('Illegal trailing comma before end of object', doc, comma);
+      }
+    }
+    function array(path) {
+      i++;
+      const a = [];
+      ws();
+      if (doc[i] === ']') { i++; return a; }
+      for (;;) {
+        a.push(value([...path, a.length]));
+        ws();
+        if (doc[i] === ']') { i++; return a; }
+        if (doc[i] !== ',') throw new JSONError("Expecting ',' delimiter", doc, i);
+        const comma = i;
+        i++;
+        ws();
+        if (doc[i] === ']') throw new JSONError('Illegal trailing comma before end of array', doc, comma);
+      }
+    }
+    ws();
+    const root = value([]);
+    ws();
+    if (i !== n) throw new JSONError('Extra data', doc, i);
+    return { value: root, spans };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Value formatting
+  // ---------------------------------------------------------------------------
+  function fmtReal(v) {
+    const f = num(v);
+    if (!Number.isFinite(f)) throw new ValueErr('REAL must be finite');
+    const s = floatRepr(f);
+    if (/e/i.test(s)) {
+      let [mant, exp] = s.toLowerCase().split('e');
+      if (!mant.includes('.')) mant += '.0';
+      return `${mant}E${exp}`;
+    }
+    return s.includes('.') ? s : s + '.0';
+  }
+  function sclString(s) {
+    return "'" + str(s).split('$').join('$$').split("'").join("$'") + "'";
+  }
+  function defaultValue(vtype) {
+    if (vtype === 'BOOL') return 'FALSE';
+    if (vtype === 'REAL') return '0.0';
+    if (vtype === 'INT' || vtype === 'DINT') return '0';
+    if (vtype === 'BYTE' || vtype === 'WORD' || vtype === 'DWORD') return '0';
+    if (vtype === 'TIME') return 'T#0MS';
+    if (STRING_RE.test(vtype)) return "''";
+    return null;
+  }
+  // SCL literal for value of vtype, or throws ValueErr
+  function fmtValue(vtype, value) {
+    if (vtype === 'BOOL') {
+      if (isBool(value)) return value ? 'TRUE' : 'FALSE';
+      if (isStr(value) && ['TRUE', 'FALSE'].includes(value.toUpperCase())) return value.toUpperCase();
+      throw new ValueErr('BOOL needs true/false');
+    }
+    if (vtype === 'REAL') {
+      if (isBool(value) || !isNum(value)) throw new ValueErr('REAL needs a number');
+      return fmtReal(value);
+    }
+    if (vtype === 'INT' || vtype === 'DINT') {
+      if (isBool(value) || !isInt(value)) throw new ValueErr(`${vtype} needs a whole number`);
+      const [lo, hi] = vtype === 'INT' ? [-32768, 32767] : [-2147483648, 2147483647];
+      if (!(lo <= value && value <= hi)) throw new ValueErr(`${vtype} out of range ${lo}..${hi}`);
+      return String(value);
+    }
+    const m = STRING_RE.exec(vtype);
+    if (m) {
+      if (!isStr(value)) throw new ValueErr('STRING needs text');
+      if (plen(value) > parseInt(m[1], 10)) throw new ValueErr(`text longer than ${vtype}`);
+      return sclString(value);
+    }
+    if (vtype === 'TIME') {
+      if (!(isStr(value) && /^T#[0-9DHMSdhms_]+$/.test(value))) throw new ValueErr("TIME needs a literal like 'T#5S'");
+      return value.toUpperCase();
+    }
+    // BYTE/WORD/DWORD/CHAR/etc: accept plain ints or literal strings
+    if (isInt(value)) return String(value);
+    if (isStr(value)) return value;
+    throw new ValueErr(`unsupported initial value for ${vtype}`);
+  }
+  function fmtAttrs(attrs) {
+    if (!attrs.size) return '';
+    return ' {' + [...attrs].map(([k, v]) => `${k}:=${sclString(v)}`).join('; ') + '}';
+  }
+
+  // ---------------------------------------------------------------------------
+  // SCL text helpers for linting
+  // ---------------------------------------------------------------------------
+  function stripCommentsAndStrings(code) {
+    return code
+      .replace(/\(\*[^]*?\*\)/gu, ' ')
+      .replace(/\/\/[^\n]*/gu, ' ')
+      .replace(/'(?:\$[^\n]|[^'$])*'/gu, "''");
+  }
+  const RE_LITERAL = new RegExp(`${B0}[A-Za-z0-9_]+#[A-Za-z0-9_.:\\-]+`, 'gu');   // T#5S, 16#FF, DINT#5
+  const RE_NAMED = new RegExp(`([(,]${WS}*)[A-Za-z_][A-Za-z0-9_]*${WS}*:=`, 'gu'); // named params MN:=
+  const RE_FIELD = new RegExp(`\\.${WS}*[A-Za-z_][A-Za-z0-9_]*`, 'gu');           // .FIELD
+  const RE_NUMBER = new RegExp(`${B0}${D}+(?:\\.${D}+)?(?:[eE][+-]?${D}+)?${B1}`, 'gu'); // numbers
+  const RE_TOKEN = new RegExp(`${B0}[A-Za-z_][A-Za-z0-9_]*${B1}`, 'gu');
+
+  // Identifiers that should be declared variables (very lightweight lexer)
+  function findIdentifiers(code) {
+    let c = stripCommentsAndStrings(code);
+    c = c.replace(RE_LITERAL, ' ');
+    c = c.replace(RE_NAMED, '$1');
+    c = c.replace(RE_FIELD, ' ');
+    c = c.replace(RE_NUMBER, ' ');
+    const found = new Set();
+    for (const m of c.matchAll(RE_TOKEN)) {
+      const u = m[0].toUpperCase();
+      if (RESERVED.has(u) || KNOWN_FUNCS.has(u) || CONVERSION_RE.test(u)) continue;
+      found.add(m[0]);
+    }
+    return found;
+  }
+
+  const PAIRS = [['IF', 'END_IF'], ['CASE', 'END_CASE'], ['FOR', 'END_FOR'], ['WHILE', 'END_WHILE'], ['REPEAT', 'END_REPEAT']];
+  const KW_RE = new Map(PAIRS.flat().map((kw) => [kw, new RegExp(`(?<![A-Z_])${kw}(?![A-Z_])`, 'g')]));
+  function checkBalance(code, where, rep) {
+    const c = stripCommentsAndStrings(code).toUpperCase();
+    for (const [o, cl] of PAIRS) {
+      const opens = (c.match(KW_RE.get(o)) || []).length;
+      const closes = (c.match(KW_RE.get(cl)) || []).length;
+      if (opens !== closes) rep.err(where, `${o} opened ${opens} time(s) but ${cl} appears ${closes} time(s)`);
+    }
+  }
+
+  const LINE_ENDS = [';', 'THEN', 'DO', 'ELSE', 'OF', ',', '(', ':='];
+  const RE_BLOCK_KW = new RegExp(`${B0}(?:THEN|DO|ELSE)${B1}`, 'iu');
+  const RE_IF_THEN = new RegExp(`${B0}IF${B1}([^]*?)${B0}THEN${B1}`, 'giu');
+  const RE_PARENS = /\([^()]*\)/gu;
+  const RE_SET_PT = new RegExp(`\\.${WS}*PT${WS}*:=`, 'iu');
+  const RE_RETURN = new RegExp(`${B0}RETURN${B1}`, 'iu');
+
+  function lintSnippet(code, where, declaredLower, rep, isCondition) {
+    const c = stripCommentsAndStrings(code);
+    if (!isCondition) {
+      checkBalance(code, where, rep);
+      // statements should end with ';' - catch the commonest slip: assignment line without ';'
+      splitlines(c).forEach((line, k) => {
+        const s = strip(line);
+        if (s.includes(':=') && !LINE_ENDS.some((e) => s.endsWith(e)) && !RE_BLOCK_KW.test(s)) {
+          rep.warn(where, `line ${k + 1} looks like an assignment without ';': ${pslice(s, 60)}`);
+        }
+      });
+    } else if (c.includes(';')) {
+      rep.err(where, "a condition must be a single expression (no ';')");
+    }
+    // assignment inside a comparison, e.g.  "IF x > REAL := y THEN"
+    for (const m of c.matchAll(RE_IF_THEN)) {
+      const cond = m[1].replace(RE_PARENS, '()'); // ignore function-call params
+      if (cond.includes(':=')) {
+        rep.err(where, `':=' (assignment) inside IF condition: IF${pslice(strip(m[1]), 60)}... use '=' or fix the expression`);
+      }
+    }
+    if (isCondition && c.replace(RE_PARENS, '()').includes(':=')) {
+      rep.err(where, "':=' (assignment) inside a condition; use '=' for comparison");
+    }
+    if (RE_SET_PT.test(c)) rep.warn(where, "logic sets a timer .PT directly; put presets in the spec's 'timers' instead");
+    for (const ident of [...findIdentifiers(code)].sort()) {
+      if (!declaredLower.has(ident.toLowerCase())) rep.err(where, `'${ident}' is used but not declared`);
+    }
+  }
+
+  class Report {
+    constructor() { this.errors = []; this.warnings = []; }
+    err(where, msg) { this.errors.push({ sev: 'ERROR', where, msg, line: `ERROR   ${where}: ${msg}` }); }
+    warn(where, msg) { this.warnings.push({ sev: 'WARNING', where, msg, line: `WARNING ${where}: ${msg}` }); }
+  }
+
+  function resolveTimers(text, timers) {
+    const idx = new Map();
+    timers.forEach((t, i) => idx.set(sub(t, 'id').toLowerCase(), i));
+    return text.replace(TIMER_REF_RE, (m, id) => `${TIMER_ARRAY}[${idx.has(id.toLowerCase()) ? idx.get(id.toLowerCase()) : '?'}]`);
+  }
+  const isElse = (cond) => strip(cond).toUpperCase() === 'ELSE';
+
+  // ---------------------------------------------------------------------------
+  // Validation
+  // ---------------------------------------------------------------------------
+  const SECTIONS = [['inputs', 'input'], ['outputs', 'output'], ['in_outs', 'in_out'], ['statics', 'static']];
+
+  function validate(spec, rep) {
+    if (!isDict(spec)) throw new SpecError('spec must be a JSON object');
+    const sv = str(get(spec, 'spec_version', ''));
+    if (!SPEC_VERSIONS.includes(sv)) rep.err('spec_version', `must be one of ['1.0'], got '${sv}'`);
+
+    const blk = get(spec, 'block', null);
+    if (!isDict(blk)) { rep.err('block', 'missing block section'); return; }
+    for (const key of ['name', 'title', 'author', 'family', 'short_name', 'version']) {
+      const x = get(blk, key, null);
+      if (!isStr(x) || !truthy(x)) rep.err(`block.${key}`, 'required text');
+    }
+    if (isStr(get(blk, 'name', null)) && !IDENT_RE.test(blk.get('name'))) {
+      rep.err('block.name', 'must be letters, digits, underscore and not start with a digit');
+    }
+    for (const [key, limit] of [['short_name', 8], ['author', 8], ['family', 8]]) {
+      const x = get(blk, key, null);
+      if (isStr(x) && plen(x) > limit) rep.err(`block.${key}`, `max ${limit} characters in STEP 7 block headers`);
+    }
+    const ver = get(blk, 'version', null);
+    if (isStr(ver) && !/^[0-9]{1,2}\.[0-9]{1,2}$/.test(ver)) rep.err('block.version', "must look like '1.0' (0.0 to 15.15)");
+    if (get(blk, 'type', 'FUNCTION_BLOCK') !== 'FUNCTION_BLOCK') rep.err('block.type', 'only FUNCTION_BLOCK is supported by this template');
+
+    // ---- variables ----
+    const seen = new Map();
+    for (const [sec, kind] of SECTIONS) {
+      const list = get(spec, sec, []);
+      if (!isList(list)) { rep.err(sec, 'must be a list'); continue; }
+      list.forEach((v, i) => {
+        let where = `${sec}[${i}]`;
+        if (!isDict(v)) { rep.err(where, 'must be an object'); return; }
+        const name = get(v, 'name', null);
+        if (!isStr(name) || !IDENT_RE.test(name)) { rep.err(where, `invalid name '${str(name)}'`); return; }
+        where = `${sec}.${name}`;
+        const U = name.toUpperCase(), lo = name.toLowerCase();
+        if (RESERVED.has(U) || KNOWN_FUNCS.has(U)) rep.err(where, 'name is an SCL reserved word or standard function');
+        if (name.length > 24) rep.warn(where, 'name longer than 24 characters (STEP 7 V5 symbol limit)');
+        if (seen.has(lo)) rep.err(where, `duplicate name (SCL is not case-sensitive; clashes with ${seen.get(lo)})`);
+        seen.set(lo, where);
+        if (lo === TIMER_ARRAY.toLowerCase() || lo === TIMER_INDEX.toLowerCase()) rep.err(where, `'${name}' is reserved for the timer engine`);
+        const vtype = get(v, 'type', null);
+        const m = isStr(vtype) ? STRING_RE.exec(vtype) : null;
+        if (!isStr(vtype) || (!ELEMENTARY.has(vtype) && !m)) { rep.err(where, `unsupported type '${str(vtype)}'`); return; }
+        if (m) {
+          const len = parseInt(m[1], 10);
+          if (!(len >= 1 && len <= 254)) rep.err(where, 'STRING length must be 1..254');
+        }
+        if (!truthy(get(v, 'comment', null))) rep.warn(where, 'no comment; every variable should say what it is for');
+        for (const key of ['initial', 'reset_value']) {
+          if (!v.has(key)) continue;
+          try { fmtValue(vtype, v.get(key)); } catch (e) {
+            if (e instanceof ValueErr) rep.err(`${where}.${key}`, e.message); else throw e;
+          }
+        }
+        const preset = get(v, 'attr_preset', 'none');
+        hashKey(preset);
+        if (!(isStr(preset) && Object.prototype.hasOwnProperty.call(ATTR_PRESETS, preset))) {
+          rep.err(where, `attr_preset must be one of ${ATTR_PRESET_LIST}`);
+        }
+        if (kind === 'static' && (preset !== 'none' || truthy(get(v, 'attributes', null)))) rep.warn(where, 'attributes on static variables are ignored');
+        if (v.has('attributes') && !isDict(v.get('attributes'))) rep.err(where, 'attributes must be an object of name: value');
+      });
+    }
+
+    const lookup = (name) => {
+      const target = str(name).toLowerCase();
+      for (const [sec] of SECTIONS) {
+        for (const v of iter(or(get(spec, sec, []), []))) {
+          if (isDict(v) && str(get(v, 'name', '')).toLowerCase() === target) return [sec, v];
+        }
+      }
+      return [null, null];
+    };
+
+    // ---- enable input ----
+    const en = get(spec, 'enable_input', null);
+    {
+      const [sec, v] = lookup(en);
+      if (sec !== 'inputs' || get(v, 'type', null) !== 'BOOL') rep.err('enable_input', `'${str(en)}' must be a BOOL in inputs`);
+    }
+
+    // ---- timers ----
+    let timers = get(spec, 'timers', []);
+    const tids = new Set();
+    if (!isList(timers)) { rep.err('timers', 'must be a list'); timers = []; }
+    timers.forEach((t, i) => {
+      const tid = isDict(t) ? get(t, 'id', null) : null;
+      let where = `timers[${i}]`;
+      if (!isStr(tid) || !IDENT_RE.test(tid)) { rep.err(where, 'id must be a simple identifier, e.g. on_delay'); return; }
+      where = `timers.${tid}`;
+      if (tids.has(tid.toLowerCase())) rep.err(where, 'duplicate timer id');
+      tids.add(tid.toLowerCase());
+      const p = get(t, 'preset', null);
+      if (!isDict(p) || p.size !== 1 || !(p.has('seconds') || p.has('from'))) {
+        rep.err(where, 'preset must be {"seconds": 5.0} or {"from": "InputName"}');
+        return;
+      }
+      if (p.has('seconds')) {
+        const s = p.get('seconds');
+        if (isBool(s) || !isNum(s) || num(s) <= 0) rep.err(where, 'preset seconds must be a number > 0');
+      } else {
+        const from = p.get('from');
+        const [, pv] = lookup(from);
+        if (!pv) rep.err(where, `preset source '${str(from)}' is not declared`);
+        else if (get(pv, 'type', null) !== 'REAL') rep.err(where, `preset source '${str(from)}' must be REAL seconds`);
+      }
+    });
+    if (timers.length) {
+      const st = get(spec, 'sample_time_input', 'SampleTime');
+      const [ssec, sv_] = lookup(st);
+      if (!sv_) rep.err('sample_time_input', `timers need a REAL input '${str(st)}' (PLC cycle time in seconds)`);
+      else if (ssec !== 'inputs' || get(sv_, 'type', null) !== 'REAL') rep.err('sample_time_input', `'${str(st)}' must be a REAL input`);
+    }
+
+    // ---- status / state ----
+    const sm = get(spec, 'state_machine', null);
+    if (!isDict(sm)) {
+      rep.err('state_machine', 'missing');
+    } else {
+      const [so, sov] = lookup(get(sm, 'status_output', null));
+      if (so !== 'outputs' || !STRING_RE.test(str(get(sov, 'type', null)))) rep.err('state_machine.status_output', 'must name a STRING output');
+      const [stvSec, stv] = lookup(get(sm, 'state_output', null));
+      if (stvSec !== 'outputs' || get(stv, 'type', null) !== 'INT') rep.err('state_machine.state_output', 'must name an INT output');
+      const strlen = (sov && STRING_RE.test(str(get(sov, 'type', null))))
+        ? parseInt(STRING_RE.exec(sub(sov, 'type'))[1], 10) : 254;
+      let states = get(sm, 'states', []);
+      if (!isList(states) || !states.length) { rep.err('state_machine.states', 'need at least one state'); states = []; }
+      const vals = new Set();
+      states.forEach((s, i) => {
+        const where = `state_machine.states[${i}]`;
+        if (!isDict(s)) { rep.err(where, 'must be an object'); return; }
+        const val = get(s, 'value', null);
+        if (isBool(val) || !isInt(val) || !(val >= 0 && val <= 32767)) rep.err(where, 'value must be an INT 0..32767');
+        else if (vals.has(hashKey(val))) rep.err(where, `duplicate state value ${str(val)}`);
+        vals.add(hashKey(val));
+        for (const key of ['name', 'condition', 'status']) {
+          const x = get(s, key, null);
+          if (!isStr(x) || !strip(x)) rep.err(where, `${key} is required`);
+        }
+        const cond = get(s, 'condition', null);
+        if (isStr(cond) && isElse(cond) && (i !== states.length - 1 || i === 0)) {
+          rep.err(where, "condition 'ELSE' is only allowed on the last state (and not the only one)");
+        }
+        const status = get(s, 'status', null);
+        if (isStr(status) && plen(status) > strlen) rep.err(where, `status text longer than status output (max ${strlen})`);
+      });
+      const sv0 = get(sm, 'safe_value', 0);
+      if (vals.size && !vals.has(hashKey(sv0))) rep.err('state_machine.safe_value', `${str(sv0)} is not one of the state values`);
+      for (const [key, def] of [['disabled_status', 'Disabled'], ['unknown_status', 'Error/Unknown']]) {
+        const txt = get(sm, key, def);
+        if (!isStr(txt) || plen(txt) > strlen) rep.err(`state_machine.${key}`, `must be text up to ${strlen} chars`);
+      }
+    }
+
+    // ---- logic sections ----
+    let ls = get(spec, 'logic_sections', []);
+    if (!isList(ls) || !ls.length) { rep.err('logic_sections', 'need at least one logic section'); ls = []; }
+    ls.forEach((s, i) => {
+      const where = `logic_sections[${i}]`;
+      if (!isDict(s) || !isStr(get(s, 'scl', null))) { rep.err(where, "needs 'title' and 'scl' text"); return; }
+      if (!truthy(get(s, 'title', null))) rep.err(where, 'title required');
+      if (RE_RETURN.test(stripCommentsAndStrings(s.get('scl')))) rep.warn(where, 'RETURN in logic skips the state/status and timer sections that follow');
+    });
+
+    if (rep.errors.length) return; // don't lint code against a broken declaration set
+
+    const declaredLower = new Set([...seen.keys(), TIMER_ARRAY.toLowerCase(), TIMER_INDEX.toLowerCase()]);
+    const checkTimerRefs = (text, where) => {
+      for (const m of text.matchAll(TIMER_REF_RE)) {
+        if (!tids.has(m[1].toLowerCase())) rep.err(where, `{timer:${m[1]}} does not match any timer id`);
+      }
+    };
+    const states = sub(sm, 'states');
+    ls.forEach((s, i) => {
+      const where = `logic_sections[${i}] '${str(get(s, 'title', null))}'`;
+      checkTimerRefs(sub(s, 'scl'), where);
+      lintSnippet(resolveTimers(sub(s, 'scl'), timers), where, declaredLower, rep, false);
+    });
+    states.forEach((s, i) => {
+      if (isElse(sub(s, 'condition'))) return;
+      const where = `state_machine.states[${i}] '${str(get(s, 'name', null))}'`;
+      checkTimerRefs(s.get('condition'), where);
+      lintSnippet(resolveTimers(s.get('condition'), timers), where, declaredLower, rep, true);
+    });
+
+    // unused declarations
+    const allCode = ls.map((s) => resolveTimers(sub(s, 'scl'), timers)).join(' ') + ' ' +
+      states.filter((s) => !isElse(sub(s, 'condition'))).map((s) => resolveTimers(s.get('condition'), timers)).join(' ');
+    const used = new Set([...findIdentifiers(allCode)].map((x) => x.toLowerCase()));
+    for (const x of [get(spec, 'enable_input', ''), get(sm, 'status_output', ''), get(sm, 'state_output', ''),
+      get(spec, 'sample_time_input', 'SampleTime')]) used.add(str(x).toLowerCase());
+    for (const t of timers) used.add(str(get(sub(t, 'preset'), 'from', '')).toLowerCase());
+    for (const sec of ['inputs', 'in_outs', 'statics']) {
+      for (const v of iter(get(spec, sec, []))) {
+        if (!used.has(sub(v, 'name').toLowerCase())) rep.warn(`${sec}.${v.get('name')}`, 'declared but never used in logic');
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Generation
+  // ---------------------------------------------------------------------------
+  function indent(text, n = 1) {
+    const pad = '    '.repeat(n);
+    return splitlines(text.replace(/\n+$/, '')).map((ln) => (strip(ln) ? pad + ln : '')).join('\n');
+  }
+  function sectionHeader(no, title, description) {
+    const out = [SEP, `// SECTION ${no}: ${upper(title)}`];
+    for (const line of iter(or(description, []))) out.push(truthy(line) ? `// ${str(line)}` : '//');
+    out.push(SEP);
+    return out.join('\n');
+  }
+  function declLine(v, withAttrs = true) {
+    let attrs = new Map();
+    if (withAttrs) {
+      attrs = new Map(ATTR_PRESETS[get(v, 'attr_preset', 'none')]);
+      for (const [k, val] of items(or(get(v, 'attributes', null), new PyDict()))) attrs.set(k, val);
+    }
+    const init = v.has('initial') ? ` := ${fmtValue(sub(v, 'type'), v.get('initial'))}` : '';
+    const comment = truthy(get(v, 'comment', null)) ? ` // ${str(v.get('comment'))}` : '';
+    return `    ${sub(v, 'name')}${fmtAttrs(attrs)} : ${sub(v, 'type')}${init};${comment}`;
+  }
+
+  function generate(spec) {
+    const blk = sub(spec, 'block');
+    const timers = get(spec, 'timers', []);
+    const sm = sub(spec, 'state_machine');
+    const stName = str(get(spec, 'sample_time_input', 'SampleTime'));
+    const nT = timers.length;
+    const L = [];
+
+    // ---- header ----
+    L.push(`FUNCTION_BLOCK "${sub(blk, 'name')}"`);
+    L.push(`TITLE = ${sclString(sub(blk, 'title'))}`);
+    const battrs = get(blk, 'attributes', new PyDict([['S7_m_c', 'true'], ['S7_tasklist', 'OB100']]));
+    if (truthy(battrs)) {
+      L.push('{');
+      L.push(items(battrs).map(([k, v]) => `${k}:=${sclString(v)}`).join(';\n'));
+      L.push('}');
+    }
+    L.push(`AUTHOR : ${sclString(sub(blk, 'author'))}`);
+    L.push(`FAMILY : ${sclString(sub(blk, 'family'))}`);
+    L.push(`NAME : ${sclString(sub(blk, 'short_name'))}`);
+    L.push(`VERSION : ${sclString(sub(blk, 'version'))}`);
+    if (truthy(get(blk, 'know_how_protect', true))) L.push('KNOW_HOW_PROTECT');
+    L.push('');
+    L.push(`// Purpose : ${str(get(blk, 'purpose', sub(blk, 'title')))}`);
+    if (truthy(get(blk, 'how_it_works', null))) {
+      L.push('//');
+      L.push('// How it works:');
+      for (const line of iter(blk.get('how_it_works'))) L.push(`// ${str(line)}`);
+    }
+    L.push('//');
+    L.push(`// Generated by sclgen ${GENERATOR_VERSION} from a JSON block spec. Edit the spec and regenerate`);
+    L.push('// rather than editing this file by hand.');
+    L.push('');
+
+    // ---- declarations ----
+    for (const [sec, kw] of [['inputs', 'VAR_INPUT'], ['outputs', 'VAR_OUTPUT'], ['in_outs', 'VAR_IN_OUT']]) {
+      const list = get(spec, sec, []);
+      if (truthy(list)) {
+        L.push(kw);
+        for (const v of iter(list)) L.push(declLine(v));
+        L.push('END_VAR');
+        L.push('');
+      }
+    }
+    L.push('VAR');
+    L.push('    // Internal working variables');
+    for (const v of iter(get(spec, 'statics', []))) L.push(declLine(v, false));
+    if (nT) {
+      const idxDoc = timers.map((t, i) => `index ${i} = ${sub(t, 'id')}`).join(', ');
+      L.push('');
+      L.push(`    ${TIMER_ARRAY} : ARRAY[0..${nT - 1}] OF STRUCT // Timer array, ${idxDoc}`);
+      L.push('        IN : BOOL; // Timer input, TRUE starts the timer accumulating');
+      L.push('        Q : BOOL; // Timer output, TRUE when ET reaches PT, stays TRUE while IN is held');
+      L.push('        RESET : BOOL := FALSE; // Set TRUE to clear ET/RT and hold Q FALSE for one scan, engine clears it');
+      L.push('        PT : REAL; // Preset time in seconds, written every scan in the timer presets section');
+      L.push('        ET : REAL; // Elapsed time in seconds, incremented each scan by ' + stName);
+      L.push('        RT : REAL; // Remaining time in seconds, PT minus ET, clamped to zero');
+      L.push('    END_STRUCT;');
+      L.push(`    ${TIMER_INDEX} : INT; // Loop index for the timer execution FOR loop`);
+    }
+    L.push('END_VAR');
+    L.push('');
+    L.push('BEGIN');
+    L.push('');
+
+    let secNo = 1;
+
+    // ---- SECTION 1: enable / reset ----
+    const en = str(sub(spec, 'enable_input'));
+    L.push(sectionHeader(secNo, 'Block enable and reset', [
+      `If ${en} is FALSE, everything is reset to a clean idle state and the block exits.`,
+      'This ensures the block always starts fresh when re-enabled after being disabled.',
+    ]));
+    secNo++;
+    const body = [];
+    const statusOut = sub(sm, 'status_output'), stateOut = sub(sm, 'state_output');
+    for (const sec of ['outputs', 'statics', 'in_outs']) {
+      const defaultReset = sec !== 'in_outs';
+      for (const v of iter(get(spec, sec, []))) {
+        const name = sub(v, 'name');
+        if (name === statusOut || name === stateOut) continue;
+        if (!truthy(get(v, 'reset_on_disable', defaultReset))) continue;
+        let val;
+        if (v.has('reset_value')) val = fmtValue(sub(v, 'type'), v.get('reset_value'));
+        else if (v.has('initial')) val = fmtValue(sub(v, 'type'), v.get('initial'));
+        else val = defaultValue(sub(v, 'type'));
+        if (val === null) continue;
+        body.push(`${name} := ${val}; // Back to initial value`);
+      }
+    }
+    body.push(`${str(stateOut)} := ${str(get(sm, 'safe_value', 0))}; // Return to safe state`);
+    body.push(`${str(statusOut)} := ${sclString(get(sm, 'disabled_status', 'Disabled'))};`);
+    if (nT) {
+      body.push(`FOR ${TIMER_INDEX} := 0 TO ${nT - 1} DO // Stop and clear every timer`);
+      for (const [f, val] of [['IN', 'FALSE'], ['Q', 'FALSE'], ['RESET', 'FALSE'], ['ET', '0.0'], ['RT', '0.0']]) {
+        body.push(`    ${TIMER_ARRAY}[${TIMER_INDEX}].${f} := ${val};`);
+      }
+      body.push('END_FOR;');
+    }
+    body.push('RETURN; // Exit the block early, skip all logic below');
+    L.push(`IF NOT ${en} THEN`);
+    L.push(indent(body.join('\n')));
+    L.push('END_IF;');
+    L.push('');
+
+    // ---- SECTION 2: timer presets ----
+    if (nT) {
+      L.push(sectionHeader(secNo, 'Timer presets', [
+        'Presets are written every scan so changes from the HMI or engineering take effect immediately.',
+        'Presets taken from inputs are clamped to 0..86400 s so a bad entry cannot break the timer.',
+      ]));
+      secNo++;
+      timers.forEach((t, i) => {
+        const p = sub(t, 'preset');
+        const id = sub(t, 'id');
+        const note = str(get(t, 'comment', id));
+        if (p.has('seconds')) L.push(`${TIMER_ARRAY}[${i}].PT := ${fmtReal(p.get('seconds'))}; // ${id}: ${note}`);
+        else L.push(`${TIMER_ARRAY}[${i}].PT := LIMIT(MN:=0.0, IN:=${str(sub(p, 'from'))}, MX:=${fmtReal(MAX_TIMER_PRESET_S)}); // ${id}: ${note}`);
+      });
+      L.push('');
+    }
+
+    // ---- application logic ----
+    for (const s of iter(sub(spec, 'logic_sections'))) {
+      L.push(sectionHeader(secNo, sub(s, 'title'), get(s, 'description', null)));
+      secNo++;
+      L.push(resolveTimers(rstrip(sub(s, 'scl')), timers));
+      L.push('');
+    }
+
+    // ---- state and status ----
+    const so = str(statusOut), stv = str(stateOut);
+    L.push(sectionHeader(secNo, 'State and status', [
+      `${stv} gives a simple integer state that can be trended or alarmed on the HMI.`,
+      `${so} gives a plain English description for diagnostics on the operator screen.`,
+      'States are tested in priority order; the first matching condition wins.',
+    ]));
+    const states = sub(sm, 'states');
+    states.forEach((s, i) => {
+      const cond = sub(s, 'condition');
+      if (isElse(cond)) L.push('ELSE');
+      else L.push(`${i === 0 ? 'IF' : 'ELSIF'} ${resolveTimers(strip(cond), timers)} THEN`);
+      L.push(`    ${stv} := ${str(sub(s, 'value'))}; // ${str(sub(s, 'name'))}`);
+    });
+    L.push('END_IF;');
+    L.push('');
+    L.push(`CASE ${stv} OF`);
+    const byValue = [...states].sort((a, b) => {
+      const x = sub(a, 'value'), y = sub(b, 'value');
+      return x < y ? -1 : x > y ? 1 : 0;
+    });
+    for (const s of byValue) {
+      L.push(`    ${str(s.get('value'))}: // ${str(sub(s, 'name'))}`);
+      L.push(`        ${so} := ${sclString(sub(s, 'status'))};`);
+    }
+    L.push('    ELSE // Unexpected state, fail safe');
+    L.push(`        ${so} := ${sclString(get(sm, 'unknown_status', 'Error/Unknown'))};`);
+    L.push(`        ${stv} := ${str(get(sm, 'safe_value', 0))}; // Force back to safe state so block recovers automatically`);
+    L.push('END_CASE;');
+    L.push('');
+
+    // ---- timer engine ----
+    if (nT) {
+      L.push(STAR);
+      L.push('// Timers execution');
+      L.push('// Runs every timer in the array with a single FOR loop; each element works identically.');
+      L.push(`// ${stName} is added to ET each scan the timer IN is active. When ET reaches PT, RT reaches`);
+      L.push('// zero and Q goes TRUE. Q stays TRUE while IN is held. RESET clears the timer for one scan');
+      L.push('// and is then cleared by the engine itself, so the timer is ready for its next cycle.');
+      L.push(STAR);
+      const t = `${TIMER_ARRAY}[${TIMER_INDEX}]`;
+      L.push(`FOR ${TIMER_INDEX} := 0 TO ${nT - 1} DO`);
+      L.push(`    IF ${t}.RESET THEN`);
+      L.push(`        ${t}.ET := 0.0; // Clear elapsed time`);
+      L.push(`        ${t}.RT := 0.0; // Clear remaining time`);
+      L.push(`        ${t}.Q := FALSE; // Hold output off while resetting`);
+      L.push(`        ${t}.RESET := FALSE; // Reset handled, clear the flag so the timer can run again`);
+      L.push(`    ELSIF ${t}.IN THEN`);
+      L.push(`        IF NOT ${t}.Q THEN`);
+      L.push(`            ${t}.ET := ${t}.ET + ${stName}; // Accumulate elapsed time`);
+      L.push('        END_IF;');
+      L.push(`        ${t}.RT := LIMIT(MN:=0.0, IN:=${t}.PT - ${t}.ET, MX:=${t}.PT); // Remaining time, never below 0`);
+      L.push(`        ${t}.Q := ${t}.RT <= 0.0; // Done when no time remains`);
+      L.push('    ELSE');
+      L.push(`        ${t}.ET := 0.0; // Not running, clear elapsed time`);
+      L.push(`        ${t}.RT := 0.0; // Not running, clear remaining time`);
+      L.push(`        ${t}.Q := FALSE; // Not running, output off`);
+      L.push('    END_IF;');
+      L.push('END_FOR;');
+      L.push('');
+    }
+
+    L.push('END_FUNCTION_BLOCK');
+    return L.join('\n') + '\n';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Entry point: text of a spec in, result out.
+  //   result.jsonError  the text is not valid JSON ({message, pos, lineno, colno})
+  //   result.errors / result.warnings  [{sev, where, msg, line}]
+  //   result.crash      the spec made the generator fail (field of the wrong type)
+  //   result.internal   the generated block failed its own structure check
+  //   result.code       generated SCL with \n line endings (null unless OK)
+  //   result.fileText   the same with CRLF line endings, ready to save
+  // ---------------------------------------------------------------------------
+  function run(text) {
+    const res = { jsonError: null, errors: [], warnings: [], crash: null, internal: null,
+      code: null, fileText: null, fileName: null, lineCount: 0, spec: null, spans: null };
+    let parsed;
+    try { parsed = parseJSON(text); } catch (e) {
+      if (!(e instanceof JSONError)) throw e;
+      res.jsonError = { message: e.message, pos: e.pos, lineno: e.lineno, colno: e.colno };
+      return res;
+    }
+    res.spec = parsed.value;
+    res.spans = parsed.spans;
+    const rep = new Report();
+    try {
+      try { validate(parsed.value, rep); } catch (e) {
+        if (e instanceof SpecError) rep.err('spec', e.message); else throw e;
+      }
+    } catch (e) {
+      res.crash = crashText(e);
+      res.crashStage = 'validate';
+      res.errors = rep.errors; res.warnings = rep.warnings;
+      return res;
+    }
+    res.errors = rep.errors; res.warnings = rep.warnings;
+    if (rep.errors.length) return res;
+    let code;
+    try { code = generate(parsed.value); } catch (e) { res.crash = crashText(e); res.crashStage = 'generate'; return res; }
+    // final structural sanity check on the generated block
+    const rep2 = new Report();
+    checkBalance(code, 'generated block', rep2);
+    if (rep2.errors.length) { res.internal = rep2.errors; return res; }
+    res.code = code;
+    res.fileText = code.replace(/\n/g, '\r\n'); // CRLF for SIMATIC Manager / TIA import
+    res.fileName = `${str(sub(sub(parsed.value, 'block'), 'name'))}.scl`;
+    res.lineCount = splitlines(code).length;
+    return res;
+  }
+  function crashText(e) {
+    if (e instanceof PyCrash) return e.message;
+    if (e instanceof ValueErr) return 'ValueError: ' + e.message;
+    return (e && e.name ? e.name + ': ' : '') + (e && e.message ? e.message : String(e));
+  }
+
+  // Find where a problem's location ("inputs.RunCmd.initial", "timers[1]", ...) is in the text.
+  function locate(where, spec, spans, preferLast) {
+    if (!spec || !spans) return null;
+    const path = [];
+    let cur = spec;
+    for (const seg of where.split(" '")[0].split('.')) {
+      const m = /^([A-Za-z_][A-Za-z0-9_]*)(?:\[(\d+)\])?$/.exec(seg);
+      if (!m) break;
+      if (isDict(cur) && cur.has(m[1])) {
+        path.push(m[1]);
+        cur = cur.get(m[1]);
+      } else if (isList(cur) && m[2] === undefined) {
+        const want = m[1].toLowerCase();
+        const hits = [];
+        cur.forEach((it, k) => {
+          if (isDict(it) && [it.get('name'), it.get('id')].some((x) => isStr(x) && x.toLowerCase() === want)) hits.push(k);
+        });
+        if (!hits.length) break;
+        const k = preferLast ? hits[hits.length - 1] : hits[0];
+        path.push(k);
+        cur = cur[k];
+        continue;
+      } else break;
+      if (m[2] !== undefined) {
+        const k = parseInt(m[2], 10);
+        if (!isList(cur) || k >= cur.length) break;
+        path.push(k);
+        cur = cur[k];
+      }
+    }
+    while (path.length) {
+      const s = spans.get(pathKey(path));
+      if (s) return s;
+      path.pop();
+    }
+    return null;
+  }
+
+  return { run, locate, version: GENERATOR_VERSION };
+})();
+/* ENGINE END */
+if (typeof module !== 'undefined') module.exports = SCLGEN;
+</script>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const ta = $('spec'), statusEl = $('status'), problemsEl = $('problems'), sclEl = $('scl');
+  const STORE = 'sclgen.v1';
+  let current = null;       // last result
+  let fileName = 'untitled.json';
+  let userTab = null;       // tab the user picked
+
+  const embed = (name) => $('embed-' + name).textContent.replace(/^\n/, '');
+  const examples = {
+    pump_run_monitor: () => embed('examples/pump_run_monitor.json'),
+    template_threshold: () => embed('examples/template_threshold.json'),
+  };
+
+  // ---- storage (may be unavailable) ----
+  function load() { try { return JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify({ text: ta.value, fileName })); } catch (e) { /* ignore */ } }
+
+  // ---- helpers ----
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+  function download(name, text, type) {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) {
+      const t = document.createElement('textarea');
+      t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+      t.remove();
+      return ok;
+    }
+  }
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+  // ---- SCL highlighting ----
+  const KW = 'FUNCTION_BLOCK|END_FUNCTION_BLOCK|VAR_INPUT|VAR_OUTPUT|VAR_IN_OUT|VAR_TEMP|VAR|END_VAR|BEGIN|IF|THEN|ELSIF|ELSE|END_IF|CASE|OF|END_CASE|FOR|TO|BY|DO|END_FOR|WHILE|END_WHILE|REPEAT|UNTIL|END_REPEAT|RETURN|EXIT|AND|OR|XOR|NOT|MOD|DIV|TRUE|FALSE|STRUCT|END_STRUCT|ARRAY|TITLE|AUTHOR|FAMILY|NAME|VERSION|KNOW_HOW_PROTECT';
+  const TY = 'BOOL|BYTE|WORD|DWORD|INT|DINT|REAL|TIME|S5TIME|DATE|TIME_OF_DAY|TOD|CHAR|STRING';
+  const HL = new RegExp(`(\\/\\/.*$)|('(?:\\$.|[^'$])*')|\\b(${KW})\\b|\\b(${TY})\\b|(\\b\\d+(?:\\.\\d+)?(?:E[+-]?\\d+)?\\b)`, 'g');
+  function highlight(line) {
+    let out = '', last = 0, m;
+    HL.lastIndex = 0;
+    while ((m = HL.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'k' : m[4] ? 't' : 'n';
+      out += `<span class="${cls}">${esc(m[0])}</span>`;
+      last = m.index + m[0].length;
+      if (m[0] === '') HL.lastIndex++;
+    }
+    return out + esc(line.slice(last));
+  }
+
+  // ---- tabs ----
+  function showTab(which) {
+    const p = which === 'problems';
+    $('tabProblems').setAttribute('aria-selected', String(p));
+    $('tabScl').setAttribute('aria-selected', String(!p));
+    $('viewProblems').hidden = !p;
+    $('viewScl').hidden = p;
+  }
+  $('tabProblems').onclick = () => { userTab = 'problems'; showTab('problems'); };
+  $('tabScl').onclick = () => { userTab = 'scl'; showTab('scl'); };
+
+  // ---- jump to a location in the editor ----
+  function jump(span) {
+    if (!span) return;
+    const [a, b] = span;
+    ta.focus();
+    ta.setSelectionRange(a, Math.max(a, b));
+    const lh = parseFloat(getComputedStyle(ta).lineHeight) || 19;
+    const line = ta.value.slice(0, a).split('\n').length - 1;
+    ta.scrollTop = Math.max(0, (line - 3) * lh);
+  }
+
+  // ---- main check ----
+  function check() {
+    let r;
+    try { r = SCLGEN.run(ta.value); } catch (e) {
+      r = { jsonError: null, errors: [], warnings: [], crash: String(e), code: null };
+    }
+    current = r;
+    const probs = [];
+    if (r.jsonError) {
+      const j = r.jsonError;
+      probs.push({ sev: 'JSON', where: `line ${j.lineno}, col ${j.colno}`, msg: `Not valid JSON: ${j.message}`, span: [j.pos, j.pos + 1] });
+    }
+    for (const p of r.errors) probs.push({ ...p, span: SCLGEN.locate(p.where, r.spec, r.spans, /^duplicate/.test(p.msg)) });
+    if (r.crash) probs.push({ sev: 'INTERNAL', where: 'spec', msg: `The generator could not handle this spec (${r.crash}). A field probably has the wrong type; check it against the schema.`, span: null });
+    if (r.internal) for (const p of r.internal) probs.push({ sev: 'INTERNAL', where: p.where, msg: p.msg + '. The generated block is unbalanced, often from IF/THEN or END_IF inside a state condition.', span: null });
+    for (const p of r.warnings) probs.push({ ...p, span: SCLGEN.locate(p.where, r.spec, r.spans, false) });
+
+    const nErr = probs.filter((p) => p.sev !== 'WARNING').length;
+    const nWarn = r.warnings.length;
+
+    // status pill
+    if (r.code) {
+      statusEl.className = 'pill ' + (nWarn ? 'warn' : 'ok');
+      statusEl.textContent = `OK · ${r.lineCount} lines` + (nWarn ? ` · ${plural(nWarn, 'warning')}` : '');
+    } else {
+      statusEl.className = 'pill err';
+      statusEl.textContent = r.jsonError ? 'Not valid JSON' : `${plural(nErr, 'error')}` + (nWarn ? ` · ${plural(nWarn, 'warning')}` : '');
+    }
+    const pc = $('probCount');
+    pc.textContent = String(probs.length);
+    pc.className = 'count' + (nErr ? ' e' : nWarn ? ' w' : '');
+
+    // problems list
+    problemsEl.textContent = '';
+    if (!probs.length) {
+      problemsEl.innerHTML = '<li class="empty nojump"><span><b>No problems</b>The spec is valid and the block was generated.</span></li>';
+    }
+    for (const p of probs) {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="sev ${p.sev}">${p.sev === 'WARNING' ? 'WARN' : p.sev === 'INTERNAL' ? 'ERROR' : p.sev}</span><span class="where">${esc(p.where)}</span><span class="msg">${esc(p.msg)}</span>`;
+      if (p.span) li.onclick = () => jump(p.span); else li.classList.add('nojump');
+      problemsEl.appendChild(li);
+    }
+
+    // SCL view
+    if (r.code) {
+      sclEl.innerHTML = r.code.replace(/\n$/, '').split('\n').map((l) => `<span class="l">${highlight(l) || ' '}</span>`).join('');
+      sclEl.style.opacity = '';
+    } else if (!sclEl.textContent) {
+      sclEl.innerHTML = '<span class="empty" style="display:block">Fix the errors to see the SCL.</span>';
+    } else {
+      sclEl.style.opacity = '.35';
+    }
+    $('dlBtn').disabled = !r.code;
+    $('copyBtn').disabled = !r.code;
+    $('dlBtn').textContent = r.code ? `Download ${r.fileName}` : 'Download .scl';
+
+    if (!r.code) showTab('problems');
+    else showTab(userTab || 'scl');
+  }
+
+  let timer;
+  ta.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { check(); save(); }, 200); });
+
+  function setText(text, name) {
+    ta.value = text;
+    fileName = name;
+    $('fname').textContent = name;
+    ta.scrollTop = 0;
+    sclEl.textContent = '';
+    userTab = null;
+    check();
+    save();
+  }
+
+  // ---- toolbar ----
+  $('openBtn').onclick = () => $('fileInput').click();
+  $('fileInput').onchange = async (e) => {
+    const f = e.target.files[0];
+    if (f) setText(await f.text(), f.name);
+    e.target.value = '';
+  };
+  $('exampleSel').onchange = (e) => {
+    const k = e.target.value;
+    if (k) setText(examples[k](), `${k}.json`);
+    e.target.value = '';
+  };
+  $('saveBtn').onclick = () => {
+    let name = fileName;
+    if (name === 'untitled.json' && current && current.code) name = current.fileName.replace(/\.scl$/, '.json');
+    download(name, ta.value, 'application/json');
+  };
+  $('aiBtn').onclick = async () => {
+    const text = embed('AI_INSTRUCTIONS.md').replace(/\s+$/, '') +
+      '\n\n## Schema: block_spec.schema.json\n\n```json\n' + embed('schema/block_spec.schema.json').replace(/\s+$/, '') + '\n```\n';
+    toast((await copy(text)) ? 'AI instructions and schema copied' : 'Copy failed: your browser blocked it');
+  };
+  $('dlBtn').onclick = () => { if (current && current.code) download(current.fileName, current.fileText, 'text/plain'); };
+  $('copyBtn').onclick = async () => {
+    if (current && current.code) toast((await copy(current.code)) ? 'SCL copied' : 'Copy failed: your browser blocked it');
+  };
+
+  // ---- drag and drop ----
+  let depth = 0;
+  addEventListener('dragenter', (e) => { if ([...e.dataTransfer.types].includes('Files')) { depth++; document.body.classList.add('dragging'); e.preventDefault(); } });
+  addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; document.body.classList.remove('dragging'); } });
+  addEventListener('dragover', (e) => e.preventDefault());
+  addEventListener('drop', async (e) => {
+    e.preventDefault();
+    depth = 0;
+    document.body.classList.remove('dragging');
+    const f = e.dataTransfer.files[0];
+    if (f) setText(await f.text(), f.name);
+  });
+
+  // close the help popup when clicking elsewhere
+  addEventListener('click', (e) => { const d = document.querySelector('details.help'); if (d.open && !d.contains(e.target)) d.open = false; });
+
+  // ---- start ----
+  const saved = load();
+  if (saved && typeof saved.text === 'string' && saved.text.trim()) setText(saved.text, saved.fileName || 'untitled.json');
+  else setText(examples.pump_run_monitor(), 'pump_run_monitor.json');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+ERROR   inputs[0]: must be an object
+ERROR   enable_input: 'Enable' must be a BOOL in inputs
+
+2 error(s), 0 warning(s). Nothing written.

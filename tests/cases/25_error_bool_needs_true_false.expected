@@ -1,0 +1,4 @@
+ERROR   inputs.RunFbk.initial: BOOL needs true/false
+ERROR   statics[0]: must be an object
+
+2 error(s), 0 warning(s). Nothing written.

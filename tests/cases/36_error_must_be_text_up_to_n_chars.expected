@@ -1,0 +1,6 @@
+ERROR   inputs.StopCheckTime: unsupported type ''
+ERROR   timers.stop_check: preset source 'StopCheckTime' must be REAL seconds
+ERROR   state_machine.states[4]: name is required
+ERROR   state_machine.disabled_status: must be text up to 50 chars
+
+4 error(s), 0 warning(s). Nothing written.

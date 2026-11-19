@@ -1,0 +1,5 @@
+ERROR   block.author: required text
+ERROR   statics.InternalReal1.initial: REAL needs a number
+WARNING inputs.RealInput1: no comment; every variable should say what it is for
+
+2 error(s), 1 warning(s). Nothing written.

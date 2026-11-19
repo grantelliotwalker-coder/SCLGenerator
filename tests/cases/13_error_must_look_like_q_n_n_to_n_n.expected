@@ -1,0 +1,4 @@
+ERROR   block.version: must look like '1.0' (0.0 to 15.15)
+ERROR   inputs.OffDelayTime: attr_preset must be one of ['none', 'hmi', 'param', 'sampletime']
+
+2 error(s), 0 warning(s). Nothing written.

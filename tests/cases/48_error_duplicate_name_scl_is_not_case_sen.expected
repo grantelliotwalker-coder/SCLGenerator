@@ -1,0 +1,3 @@
+ERROR   outputs.BoolOutput1: duplicate name (SCL is not case-sensitive; clashes with outputs.BoolOutput1)
+
+1 error(s), 0 warning(s). Nothing written.

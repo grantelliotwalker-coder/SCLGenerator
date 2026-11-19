@@ -1,0 +1,4 @@
+ERROR   inputs.BoolInput1: unsupported type 'BOOL'str''
+ERROR   enable_input: 'BoolInput1' must be a BOOL in inputs
+
+2 error(s), 0 warning(s). Nothing written.

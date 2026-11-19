@@ -1,0 +1,4 @@
+ERROR   outputs[1]: invalid name 'it's $5'
+ERROR   statics: must be a list
+
+2 error(s), 0 warning(s). Nothing written.

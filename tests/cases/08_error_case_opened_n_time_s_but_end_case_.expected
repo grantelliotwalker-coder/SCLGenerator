@@ -1,0 +1,3 @@
+ERROR   generated block: CASE opened 0 time(s) but END_CASE appears 1 time(s)
+ERROR   generated block: FOR opened 3 time(s) but END_FOR appears 1 time(s)
+Internal error: generated block is unbalanced. Nothing written.

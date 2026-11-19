@@ -1,0 +1,5 @@
+ERROR   state_machine.states[4] 'Stopped': a condition must be a single expression (no ';')
+ERROR   state_machine.states[4] 'Stopped': 'EEND_CASE' is used but not declared
+ERROR   state_machine.states[4] 'Stopped': 'LSE' is used but not declared
+
+3 error(s), 0 warning(s). Nothing written.

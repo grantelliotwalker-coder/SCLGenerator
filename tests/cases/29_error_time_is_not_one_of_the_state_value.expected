@@ -1,0 +1,4 @@
+ERROR   inputs[3]: must be an object
+ERROR   state_machine.safe_value: TIME is not one of the state values
+
+2 error(s), 0 warning(s). Nothing written.

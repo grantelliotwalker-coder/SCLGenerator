@@ -1,0 +1,5 @@
+ERROR   inputs.OnDelayTime: unsupported type '{'a': 1}'
+ERROR   timers.on_delay: preset source 'OnDelayTime' must be REAL seconds
+ERROR   state_machine.safe_value: 2.5 is not one of the state values
+
+3 error(s), 0 warning(s). Nothing written.

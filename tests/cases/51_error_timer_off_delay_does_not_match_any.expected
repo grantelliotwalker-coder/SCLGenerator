@@ -1,0 +1,18 @@
+ERROR   logic_sections[1] 'Timer control logic': {timer:on_delay} does not match any timer id
+ERROR   logic_sections[1] 'Timer control logic': {timer:off_delay} does not match any timer id
+ERROR   logic_sections[1] 'Timer control logic': {timer:off_delay} does not match any timer id
+ERROR   logic_sections[1] 'Timer control logic': {timer:on_delay} does not match any timer id
+ERROR   logic_sections[1] 'Timer control logic': {timer:on_delay} does not match any timer id
+ERROR   logic_sections[1] 'Timer control logic': {timer:off_delay} does not match any timer id
+ERROR   logic_sections[2] 'Output logic': {timer:on_delay} does not match any timer id
+ERROR   logic_sections[2] 'Output logic': {timer:on_delay} does not match any timer id
+ERROR   logic_sections[2] 'Output logic': {timer:on_delay} does not match any timer id
+ERROR   logic_sections[2] 'Output logic': {timer:off_delay} does not match any timer id
+ERROR   logic_sections[2] 'Output logic': {timer:off_delay} does not match any timer id
+ERROR   logic_sections[2] 'Output logic': {timer:off_delay} does not match any timer id
+ERROR   state_machine.states[0] 'On delay timing': {timer:on_delay} does not match any timer id
+ERROR   state_machine.states[1] 'Active, off delay timing': {timer:off_delay} does not match any timer id
+WARNING inputs.OnDelayTime: declared but never used in logic
+WARNING inputs.OffDelayTime: declared but never used in logic
+
+14 error(s), 2 warning(s). Nothing written.

@@ -1,0 +1,5 @@
+ERROR   inputs[4]: invalid name '{'seconds': 0}'
+ERROR   timers.start_check: preset source 'StartCheckTime' is not declared
+WARNING inputs.RunFbk: no comment; every variable should say what it is for
+
+2 error(s), 1 warning(s). Nothing written.
